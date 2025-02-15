@@ -65,8 +65,8 @@ public class PacketAggregationPacket implements CustomPacketPayload {
             buffer.writeBoolean(false);
             buffer.writeBytes(bufRaw);
         } else {
-            if (LogUtils.getLogger().isDebugEnabled()) {
-                LogUtils.getLogger().debug("Packet {} aggregation compressed: {} bytes-> {} bytes ( {} %).",
+            if (LogUtils.getLogger().isTraceEnabled()) {
+                LogUtils.getLogger().trace("Packet {} aggregation compressed: {} bytes-> {} bytes ( {} %).",
                         type, bufRaw.readableBytes(), bufCompressed.readableBytes(),
                         String.format("%.2f", 100f * compressRatio));
             }

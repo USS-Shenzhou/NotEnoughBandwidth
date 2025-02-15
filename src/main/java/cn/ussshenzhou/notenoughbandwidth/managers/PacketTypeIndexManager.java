@@ -5,12 +5,15 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.registration.NetworkPayloadSetup;
+import net.neoforged.neoforge.network.registration.NetworkRegistry;
+import net.neoforged.neoforge.network.registration.PayloadRegistration;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -23,8 +26,22 @@ public class PacketTypeIndexManager {
     private static final ArrayList<ArrayList<String>> PATHS = new ArrayList<>();
     private static final Object2IntMap<String> NAMESPACE_MAP = new Object2IntOpenHashMap<>();
     private static final HashMap<Integer, Object2IntMap<String>> PATH_MAPS = new HashMap<>();
+    private static final VarHandle PAYLOAD_REGISTRATIONS;
+
+    static {
+        try {
+            var lookup = MethodHandles.lookup();
+            var privateLookup = MethodHandles.privateLookupIn(NetworkRegistry.class, lookup);
+            PAYLOAD_REGISTRATIONS = privateLookup.findStaticVarHandle(NetworkRegistry.class,"PAYLOAD_REGISTRATIONS", Map.class);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static void init(NetworkPayloadSetup setup) {
+        if (FMLEnvironment.dist == Dist.DEDICATED_SERVER && initialized) {
+            return;
+        }
         synchronized (NAMESPACES) {
             PacketAggregationManager.init();
 
@@ -37,7 +54,12 @@ public class PacketTypeIndexManager {
             List<ResourceLocation> types = new ArrayList<>(setup.channels().get(ConnectionProtocol.PLAY).keySet());
             types.sort(Comparator.comparing(ResourceLocation::getNamespace).thenComparing(ResourceLocation::getPath));
             AtomicInteger namespaceIndex = new AtomicInteger();
+            @SuppressWarnings("unchecked")
+            var registration = ((Map<ConnectionProtocol, Map<ResourceLocation, PayloadRegistration<?>>>) PAYLOAD_REGISTRATIONS.get()).get(ConnectionProtocol.PLAY);
             types.forEach(type -> {
+                if (!registration.containsKey(type) || registration.get(type).optional()) {
+                    return;
+                }
                 if (!NAMESPACE_MAP.containsKey(type.getNamespace())) {
                     NAMESPACE_MAP.put(type.getNamespace(), namespaceIndex.get());
                     NAMESPACES.add(type.getNamespace());
@@ -70,6 +92,7 @@ public class PacketTypeIndexManager {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private static boolean contains(ResourceLocation type) {
         if (!initialized) {
             return false;
