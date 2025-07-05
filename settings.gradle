@@ -43,13 +43,8 @@ pluginManagement {
 
 rootProject.name = 'Paramita'
 
-include('1.14.4-base', '1.14.4-forge', '1.14.4-fabric')
-include('1.15.2-base', '1.15.2-forge', '1.15.2-fabric')
-include('1.16.5-base', '1.16.5-forge', '1.16.5-fabric')
-include('1.17.1-base', '1.17.1-forge', '1.17.1-fabric')
-//include'1.18.1-base', '1.18.1-forge', '1.18.1-fabric', '1.18.1-quilt') // TODO
-include('1.18.2-base', '1.18.2-forge', '1.18.2-fabric', '1.18.2-quilt')
-include('1.19.2-base', '1.19.2-forge', '1.19.2-fabric', '1.19.2-quilt')
-include('1.19.3-base', '1.19.3-forge', '1.19.3-fabric', '1.19.3-quilt')
-include('1.19.4-base', '1.19.4-forge', '1.19.4-fabric', '1.19.4-quilt')
+include('1.18.2-base', '1.18.2-forge', '1.18.2-fabric')
+include('1.19.2-base', '1.19.2-forge', '1.19.2-fabric')
+include('1.19.3-base', '1.19.3-forge', '1.19.3-fabric')
+include('1.19.4-base', '1.19.4-forge', '1.19.4-fabric')
 
