@@ -16,15 +16,16 @@ interface PlatformInfoExtension {
 }
 
 def mainVersion = '1.0.3'
+def java17Version = ['1.18.2', '1.19.4', '1.20.1'] as Set
 
 subprojects { Project p ->
     apply plugin: 'java'
     apply plugin: 'com.modrinth.minotaur' // https://stackoverflow.com/a/50153617
     apply plugin: 'net.darkhax.curseforgegradle'
 
-    p.extensions.create('platformInfo', PlatformInfoExtension)
+    var platformInfo = p.extensions.create('platformInfo', PlatformInfoExtension)
 
-    java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+    java.toolchain.languageVersion = JavaLanguageVersion.of(platformInfo.getMinecraftVersion().getOrElse("null") in java17Version ? 17 : 21)
     java.withSourcesJar()
 
     p.archivesBaseName = "ExampleMultiProjectMod"
@@ -88,7 +89,7 @@ subprojects { Project p ->
         pAfter.modrinth {
             token = System.getenv("MODRINTH_TOKEN")
             projectId = System.getenv("MODRINTH_PROJECT_ID")
-            loaders = [ projectExt.platform.get().toLowerCase(Locale.ROOT) ]
+            loaders = [projectExt.platform.get().toLowerCase(Locale.ROOT)]
             gameVersions = projectExt.supportedMinecraftVersions.getOrElse([])
             uploadFile = useLoom ? pAfter.remapJar : pAfter.jar
             versionNumber = mainVersion
@@ -118,12 +119,12 @@ subprojects { Project p ->
 
         pAfter.jar {
             manifest.attributes([
-                    "Specification-Title": "Example-Mod",
-                    "Specification-Vendor": "Whoever comes up with the spec of the mod",
-                    "Specification-Version": "1.0",
-                    "Implementation-Title": "${pAfter.archivesBaseName}",
+                    "Specification-Title"   : "Example-Mod",
+                    "Specification-Vendor"  : "Whoever comes up with the spec of the mod",
+                    "Specification-Version" : "1.0",
+                    "Implementation-Title"  : "${pAfter.archivesBaseName}",
                     "Implementation-Version": "${pAfter.version}",
-                    "Implementation-Vendor": "Whoever actually writes the mod"
+                    "Implementation-Vendor" : "Whoever actually writes the mod"
             ])
         }
     }

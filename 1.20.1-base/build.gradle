@@ -4,13 +4,13 @@ plugins {
 }
 
 platformInfo {
-    minecraftVersion = '1.19.3'
+    minecraftVersion = '1.20.1'
     platform = 'Vanilla'
-    supportedMinecraftVersions = [ '1.19.3' ]
+    supportedMinecraftVersions = [ '1.20.1' ]
 }
 
 minecraft {
-    version '1.19.3'
+    version '1.20.1'
 
     // Uncomment this to enable the usage of Access Widener
     // accessWideners 'src/main/resources/examplemod.accesswidener'

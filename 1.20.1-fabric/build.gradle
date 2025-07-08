@@ -1,12 +1,12 @@
 plugins {
-    id 'fabric-loom' version '0.12-SNAPSHOT'
+    id 'fabric-loom' version '1.11-SNAPSHOT'
     id 'io.github.juuxel.loom-quiltflower' version '1.7.1'
 }
 
 platformInfo {
-    minecraftVersion = '1.19.3'
+    minecraftVersion = '1.20.1'
     platform = 'Fabric'
-    supportedMinecraftVersions = [ '1.19.3' ]
+    supportedMinecraftVersions = [ '1.20.1' ]
 }
 
 loom {
@@ -53,17 +53,20 @@ repositories {
 }
 
 dependencies {
-    minecraft "com.mojang:minecraft:1.19.3"
+    minecraft "com.mojang:minecraft:1.20.1"
     mappings loom.layered() {
-        officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-1.19.3:2022.12.18@zip")
+        //officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-1.20.1:2023.09.03@zip")
     }
-    modImplementation "net.fabricmc:fabric-loader:0.14.11"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:0.68.1+1.19.3"
-    api project(":1.19.3-base")
+    modImplementation "net.fabricmc:fabric-loader:0.16.14"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:0.92.6+1.20.1"
+    api project(":1.20.1-base")
 
     // Need this to tell me what mods are present at runtime
-    modRuntimeOnly group: 'com.terraformersmc', name: 'modmenu', version: '5.0.2'
+    modRuntimeOnly(group: 'com.terraformersmc', name: 'modmenu', version: '7.+') {
+        exclude group: 'net.fabricmc'
+        exclude group: 'net.fabricmc.fabric-api'
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {

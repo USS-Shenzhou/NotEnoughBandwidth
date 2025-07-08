@@ -1,5 +1,6 @@
 plugins {
     id 'eclipse'
+    id 'idea'
     id 'maven-publish'
     id 'net.minecraftforge.gradle' version '[6.0,6.2)'
     id 'org.parchmentmc.librarian.forgegradle' version '1.+'
@@ -7,9 +8,9 @@ plugins {
 }
 
 platformInfo {
-    minecraftVersion = '1.19.3'
+    minecraftVersion = '1.20.1'
     platform = 'Forge'
-    supportedMinecraftVersions = [ '1.19.3' ]
+    supportedMinecraftVersions = [ '1.20.1' ]
 }
 
 mixin {
@@ -22,7 +23,7 @@ repositories {
 }
 
 minecraft {
-    mappings channel: 'official', version: '1.19.3'
+    mappings channel: 'official', version: '1.20.1'
 
     runs {
         client {
@@ -36,7 +37,7 @@ minecraft {
             mods {
                 examplemod {
                     source sourceSets.main
-                    source project(":1.19.3-base").sourceSets.main
+                    source project(":1.20.1-base").sourceSets.main
                 }
             }
         }
@@ -49,7 +50,7 @@ minecraft {
             mods {
                 examplemod {
                     source sourceSets.main
-                    source project(":1.19.3-base").sourceSets.main
+                    source project(":1.20.1-base").sourceSets.main
                 }
             }
         }
@@ -60,11 +61,11 @@ minecraft {
             ideaModule "${rootProject.name}.${project.name}.main"
             // Uncomment this line to get your Mixin applied in Data-Gen environments
             // args "-mixin.config=examplemod.mixins.json"
-            
+
             mods {
                 examplemod {
                     source sourceSets.main
-                    source project(":1.19.3-base").sourceSets.main
+                    source project(":1.20.1-base").sourceSets.main
                 }
             }
             args '--mod', 'examplemod', '--all', '--output', '"' + file('src/generated/resources/') + '"'
@@ -73,8 +74,8 @@ minecraft {
 }
 
 dependencies {
-    minecraft "net.minecraftforge:forge:1.19.3-44.1.8"
-    compileOnly project(":1.19.3-base")
+    minecraft "net.minecraftforge:forge:1.20.1-47.4.3"
+    compileOnly project(":1.20.1-base")
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 

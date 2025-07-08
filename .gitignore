@@ -8,6 +8,7 @@ build
 */run-client
 */run-server
 */run-data
+*/run
 
 # Eclipse
 .classpath

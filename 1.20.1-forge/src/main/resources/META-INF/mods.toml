@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[25,)"
+loaderVersion="[47,)"
 license="CC0-1.0"
 issueTrackerURL="https://example.invalid/"
 displayTest="IGNORE_ALL_VERSION"
@@ -14,4 +14,4 @@ authors="3TUSK"
 [[dependencies.test_multi_project_mod_please_ignore]]
 modId="minecraft"
 mandatory=true
-versionRange="[1.19, 1.19.2]"
+versionRange="[1.20.1,1.21)"

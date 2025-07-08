@@ -1,0 +1,87 @@
+plugins {
+    id 'java-library'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version '2.0.99'
+}
+
+platformInfo {
+    minecraftVersion = '1.20.4'
+    platform = 'Forge'
+    supportedMinecraftVersions = [ '1.20.4' ]
+}
+
+repositories {
+}
+
+neoForge {
+    // Specify the version of NeoForge to use.
+    version = '20.4.248'
+
+    parchment {
+        mappingsVersion = '2024.04.14'
+        minecraftVersion = '1.20.4'
+    }
+
+    // This line is optional. Access Transformers are automatically detected
+    // accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
+
+    // Default run configurations.
+    // These can be tweaked, removed, or duplicated as needed.
+    runs {
+        client {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'examplemod'
+            ideaModule "${rootProject.name}.${project.name}.main"
+        }
+
+        server {
+            server()
+            programArgument '--nogui'
+            ideaModule "${rootProject.name}.${project.name}.main"
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'examplemod'
+        }
+
+        gameTestServer {
+            type = "gameTestServer"
+            ideaModule "${rootProject.name}.${project.name}.main"
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'examplemod'
+        }
+
+        data {
+            data()
+            ideaModule "${rootProject.name}.${project.name}.main"
+            programArguments.addAll '--mod', 'examplemod', '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+        }
+
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+
+            modSource {
+                project.sourceSets.main
+                project(":1.20.4-base").sourceSets.main
+            }
+        }
+    }
+
+    mods {
+        'examplemod' {
+            source sourceSets.main
+            source project(":1.20.4-base").sourceSets.main
+        }
+    }
+}
+
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+}
+
+dependencies {
+    implementation "net.neoforged:neoforge:20.4.248"
+    compileOnly project(":1.20.4-base")
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 17
+}
