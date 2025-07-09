@@ -43,7 +43,9 @@ pluginManagement {
 
 rootProject.name = 'Paramita'
 
+include('share')
 include('1.18.2-base', '1.18.2-forge', '1.18.2-fabric')
 include('1.19.4-base', '1.19.4-forge', '1.19.4-fabric')
 include('1.20.1-base', '1.20.1-forge', '1.20.1-fabric')
 include('1.20.4-base', '1.20.4-neoforge', '1.20.4-fabric')
+include('1.21.1-base', '1.21.1-neoforge', '1.21.1-fabric')

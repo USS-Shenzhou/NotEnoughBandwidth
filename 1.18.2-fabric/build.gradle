@@ -60,7 +60,7 @@ dependencies {
     }
     modImplementation "net.fabricmc:fabric-loader:0.14.9"
     modImplementation "net.fabricmc.fabric-api:fabric-api:0.67.0+1.18.2"
-    compileOnly project(":1.18.2-base")
+    implementation project(":1.18.2-base")
 
     // Need this to tell me what mods are present at runtime
     modRuntimeOnly group: 'com.terraformersmc', name: 'modmenu', version: '3.2.5'

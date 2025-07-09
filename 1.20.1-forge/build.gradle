@@ -75,7 +75,7 @@ minecraft {
 
 dependencies {
     minecraft "net.minecraftforge:forge:1.20.1-47.4.3"
-    compileOnly project(":1.20.1-base")
+    implementation project(":1.20.1-base")
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 

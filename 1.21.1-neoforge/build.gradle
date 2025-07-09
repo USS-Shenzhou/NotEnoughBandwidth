@@ -7,9 +7,9 @@ plugins {
 }
 
 platformInfo {
-    minecraftVersion = '1.20.4'
+    minecraftVersion = '1.21.1'
     platform = 'NeoForge'
-    supportedMinecraftVersions = [ '1.20.4' ]
+    supportedMinecraftVersions = [ '1.21.1' ]
 }
 
 repositories {
@@ -17,11 +17,11 @@ repositories {
 
 neoForge {
     // Specify the version of NeoForge to use.
-    version = '20.4.248'
+    version = '21.1.187'
 
     parchment {
-        mappingsVersion = '2024.04.14'
-        minecraftVersion = '1.20.4'
+        mappingsVersion = '2024.11.17'
+        minecraftVersion = '1.21.1'
     }
 
     // This line is optional. Access Transformers are automatically detected
@@ -60,7 +60,7 @@ neoForge {
     mods {
         'examplemod' {
             sourceSet sourceSets.main
-            sourceSet project(":1.20.4-base").sourceSets.main
+            sourceSet project(":1.21.1-base").sourceSets.main
         }
     }
 }
@@ -70,10 +70,10 @@ configurations {
 }
 
 dependencies {
-    implementation "net.neoforged:neoforge:20.4.248"
-    implementation project(":1.20.4-base")
+    implementation "net.neoforged:neoforge:21.1.187"
+    implementation project(":1.21.1-base")
 }
 
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 17
+    it.options.release = 21
 }

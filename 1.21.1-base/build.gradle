@@ -4,13 +4,13 @@ plugins {
 }
 
 platformInfo {
-    minecraftVersion = '1.20.4'
+    minecraftVersion = '1.21.1'
     platform = 'Vanilla'
-    supportedMinecraftVersions = [ '1.20.4' ]
+    supportedMinecraftVersions = [ '1.21.1' ]
 }
 
 minecraft {
-    version '1.20.4'
+    version '1.21.1'
 
     // Uncomment this to enable the usage of Access Widener
     // accessWideners 'src/main/resources/examplemod.accesswidener'
@@ -24,5 +24,5 @@ dependencies {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 17
+    it.options.release = 21
 }

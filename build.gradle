@@ -3,6 +3,7 @@ import net.darkhax.curseforgegradle.TaskPublishCurseForge
 plugins {
     id 'com.modrinth.minotaur' version '2.+' apply false
     id 'net.darkhax.curseforgegradle' version '1.1.17' apply false
+    id  "org.jetbrains.gradle.plugin.idea-ext"  version "1.1.+"
 }
 
 interface PlatformInfoExtension {
@@ -44,6 +45,12 @@ subprojects { Project p ->
         }
     }
 
+    if (!p.name.startsWith('share')) {
+        p.dependencies {
+            implementation project(':share')
+        }
+    }
+
     p.tasks.withType(JavaCompile).configureEach {
         it.options.encoding = 'UTF-8'
     }
@@ -55,7 +62,7 @@ subprojects { Project p ->
 
     p.afterEvaluate { Project pAfter ->
 
-        if (!pAfter.name.endsWith('base')) {
+        if (!pAfter.name.startsWith('share') && !pAfter.name.endsWith('base')) {
             String baseProject = ':' + pAfter.name.substring(0, pAfter.name.indexOf('-')) + '-base'
             pAfter.compileJava {
                 source(pAfter.project(baseProject).sourceSets.main.allSource)

@@ -1,0 +1,19 @@
+plugins {
+    id('java')
+}
+
+platformInfo {
+    minecraftVersion = 'placeholder'
+    platform = 'placeholder'
+    supportedMinecraftVersions = ['placeholder']
+}
+
+repositories {
+}
+
+dependencies {
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 17
+}

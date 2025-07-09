@@ -4,9 +4,9 @@ plugins {
 }
 
 platformInfo {
-    minecraftVersion = '1.20.1'
+    minecraftVersion = '1.21.1'
     platform = 'Fabric'
-    supportedMinecraftVersions = [ '1.20.1' ]
+    supportedMinecraftVersions = [ '1.21.1' ]
 }
 
 loom {
@@ -50,25 +50,29 @@ repositories {
         name = 'TerraformerMC'
         url = 'https://maven.terraformersmc.com/releases/'
     }
+    maven {
+        name "Nucleoid"
+        url "https://maven.nucleoid.xyz/"
+    }
 }
 
 dependencies {
-    minecraft "com.mojang:minecraft:1.20.1"
+    minecraft "com.mojang:minecraft:1.21.1"
     mappings loom.layered() {
         //officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-1.20.1:2023.09.03@zip")
+        parchment("org.parchmentmc.data:parchment-1.21.1:2024.11.17@zip")
     }
     modImplementation "net.fabricmc:fabric-loader:0.16.14"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:0.92.6+1.20.1"
-    implementation project(":1.20.1-base")
+    modImplementation "net.fabricmc.fabric-api:fabric-api:0.116.4+1.21.1"
+    implementation project(":1.21.1-base")
 
     // Need this to tell me what mods are present at runtime
-    modRuntimeOnly(group: 'com.terraformersmc', name: 'modmenu', version: '7.+') {
+    modRuntimeOnly(group: 'com.terraformersmc', name: 'modmenu', version: '11.+') {
         exclude group: 'net.fabricmc'
         exclude group: 'net.fabricmc.fabric-api'
     }
 }
 
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 17
+    it.options.release = 21
 }

@@ -4,9 +4,9 @@ plugins {
 }
 
 platformInfo {
-    minecraftVersion = '1.20.1'
+    minecraftVersion = '1.20.4'
     platform = 'Fabric'
-    supportedMinecraftVersions = [ '1.20.1' ]
+    supportedMinecraftVersions = [ '1.20.4' ]
 }
 
 loom {
@@ -64,7 +64,7 @@ dependencies {
     }
     modImplementation "net.fabricmc:fabric-loader:0.16.14"
     modImplementation "net.fabricmc.fabric-api:fabric-api:0.97.3+1.20.4"
-    api project(":1.20.4-base")
+    implementation project(":1.20.4-base")
 
     // Need this to tell me what mods are present at runtime
     modRuntimeOnly(group: 'com.terraformersmc', name: 'modmenu', version: '9.+') {
