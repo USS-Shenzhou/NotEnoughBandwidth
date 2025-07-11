@@ -1,9 +1,7 @@
-import net.darkhax.curseforgegradle.TaskPublishCurseForge
-
 plugins {
     id 'com.modrinth.minotaur' version '2.+' apply false
-    id 'net.darkhax.curseforgegradle' version '1.1.17' apply false
-    id  "org.jetbrains.gradle.plugin.idea-ext"  version "1.1.+"
+    id "org.jetbrains.gradle.plugin.idea-ext" version "1.1.+"
+    id "io.github.pacifistmc.forgix" version "2.+"
 }
 
 interface PlatformInfoExtension {
@@ -18,11 +16,11 @@ interface PlatformInfoExtension {
 
 def mainVersion = '1.0.3'
 def java17Version = ['1.18.2', '1.19.4', '1.20.1'] as Set
+def allVersion = ['1.18.2', '1.19.4', '1.20.1', '1.20.4', '1.21.1']
 
 subprojects { Project p ->
     apply plugin: 'java'
     apply plugin: 'com.modrinth.minotaur' // https://stackoverflow.com/a/50153617
-    apply plugin: 'net.darkhax.curseforgegradle'
 
     var platformInfo = p.extensions.create('platformInfo', PlatformInfoExtension)
 
@@ -108,20 +106,6 @@ subprojects { Project p ->
             pAfter.tasks.named("modrinth") {
                 enabled = false
             }
-        } else {
-            pAfter.tasks.register('curseforge', TaskPublishCurseForge) {
-                disableVersionDetection()
-                apiToken = System.getenv("CURSEFORGE_TOKEN")
-                def projectId = System.getenv("CURSEFORGE_PROJECT_ID")
-                def mainFile = upload(projectId, useLoom ? pAfter.remapJar : pAfter.jar)
-                mainFile.addModLoader(projectExt.platform.get())
-                projectExt.supportedMinecraftVersions.getOrElse([]).each {
-                    mainFile.addGameVersion(it)
-                }
-                mainFile.releaseType = 'release'
-                mainFile.changelog = 'Bug fixes'
-            }
-            // TODO Declare Dependency
         }
 
         pAfter.jar {
@@ -136,4 +120,57 @@ subprojects { Project p ->
         }
     }
 
+}
+
+//allVersion.forEach { ver ->
+//    tasks.register('merge-' + ver) {
+//        forgix {
+//            silence = false
+//            autoRun = false
+//            archiveClassifier = "all-platforms"
+//            archiveVersion = mainVersion + '+' + ver
+//            destinationDirectory = rootProject.layout.projectDirectory.dir("build/merged/" + ver)
+//
+//            merge(ver + '-fabric') {
+//                inputJar = project(':' + ver + '-fabric').tasks.remapJar.archiveFile
+//            }
+//
+//            if (ver in java17Version) {
+//                merge(ver + '-forge') {
+//                    inputJar = project(':' + ver + '-forge').tasks.jar.archiveFile
+//                }
+//            } else {
+//                merge(ver + '-neoforge') {
+//                    inputJar = project(':' + ver + '-neoforge').tasks.jar.archiveFile
+//                }
+//            }
+//        }
+//    }
+//}
+//
+//tasks.named('build') {
+//    finalizedBy allVersion.collect { ver -> 'merge-' + ver }
+//}
+
+forgix {
+    silence = false
+    autoRun = true
+    archiveClassifier = "all-platforms"
+    archiveVersion = mainVersion
+
+    allVersion.forEach { ver ->
+        merge(ver + '-fabric') {
+            inputJar = project(':' + ver + '-fabric').tasks.jar.archiveFile
+        }
+
+        if (ver in java17Version) {
+            merge(ver + '-forge') {
+                inputJar = project(':' + ver + '-forge').tasks.jar.archiveFile
+            }
+        } else {
+            merge(ver + '-neoforge') {
+                inputJar = project(':' + ver + '-neoforge').tasks.jar.archiveFile
+            }
+        }
+    }
 }
