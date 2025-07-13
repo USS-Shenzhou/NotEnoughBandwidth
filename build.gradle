@@ -122,36 +122,6 @@ subprojects { Project p ->
 
 }
 
-//allVersion.forEach { ver ->
-//    tasks.register('merge-' + ver) {
-//        forgix {
-//            silence = false
-//            autoRun = false
-//            archiveClassifier = "all-platforms"
-//            archiveVersion = mainVersion + '+' + ver
-//            destinationDirectory = rootProject.layout.projectDirectory.dir("build/merged/" + ver)
-//
-//            merge(ver + '-fabric') {
-//                inputJar = project(':' + ver + '-fabric').tasks.remapJar.archiveFile
-//            }
-//
-//            if (ver in java17Version) {
-//                merge(ver + '-forge') {
-//                    inputJar = project(':' + ver + '-forge').tasks.jar.archiveFile
-//                }
-//            } else {
-//                merge(ver + '-neoforge') {
-//                    inputJar = project(':' + ver + '-neoforge').tasks.jar.archiveFile
-//                }
-//            }
-//        }
-//    }
-//}
-//
-//tasks.named('build') {
-//    finalizedBy allVersion.collect { ver -> 'merge-' + ver }
-//}
-
 forgix {
     silence = false
     autoRun = true
