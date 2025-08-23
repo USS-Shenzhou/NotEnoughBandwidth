@@ -41,7 +41,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'Paramita'
+rootProject.name = 'NeoParamita'
 
 include('share')
 include('1.18.2-base', '1.18.2-forge', '1.18.2-fabric')
