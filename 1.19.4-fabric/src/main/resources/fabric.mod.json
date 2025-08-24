@@ -8,7 +8,11 @@
   "contact": {},
   "license": "CC0-1.0",
   "environment": "client",
-  "entrypoints": {},
+  "entrypoints": {
+    "main": [
+      "cn.ussshenzhou.Example"
+    ]
+  },
   "depends": {
     "minecraft": "1.19.4"
   }
