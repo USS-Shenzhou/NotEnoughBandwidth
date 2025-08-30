@@ -60,42 +60,7 @@ subprojects { Project p ->
 
     p.afterEvaluate { Project pAfter ->
 
-        if (!pAfter.name.startsWith('share') && !pAfter.name.endsWith('base')) {
-            String baseProject = ':' + pAfter.name.substring(0, pAfter.name.indexOf('-')) + '-base'
-            pAfter.compileJava {
-                source(pAfter.project(baseProject).sourceSets.main.allSource)
-            }
-            pAfter.sourcesJar {
-                from project(baseProject).sourceSets.main.allJava
-            }
-            pAfter.processResources {
-                from project(baseProject).sourceSets.main.resources
-            }
-
-            if (pAfter.name.endsWith('fabric')) {
-                pAfter.tasks.named("remapJar").configure {
-                    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-                    from pAfter.sourceSets.main.output
-                    from project(baseProject).sourceSets.main.output
-                }
-            }
-        }
-
         def projectExt = pAfter.extensions.platformInfo as PlatformInfoExtension
-
-        def useLoom = pAfter.extensions.findByName('loom')
-
-        if (useLoom) {
-            pAfter.loom {
-                // Uncomment this if you have Mixin configurations
-                // mixin {
-                //     // Enable legacy Mixin AP properties, so that we can override
-                //     // default refmap file name.
-                //     useLegacyMixinAp = true
-                //     defaultRefmapName = 'examplemod.refmap.json'
-                // }
-            }
-        }
 
         pAfter.archivesBaseName += "-${projectExt.platform.get()}-${projectExt.minecraftVersion.get()}"
 
@@ -104,7 +69,7 @@ subprojects { Project p ->
             projectId = System.getenv("MODRINTH_PROJECT_ID")
             loaders = [projectExt.platform.get().toLowerCase(Locale.ROOT)]
             gameVersions = projectExt.supportedMinecraftVersions.getOrElse([])
-            uploadFile = useLoom ? pAfter.remapJar : pAfter.jar
+            uploadFile = pAfter.jar
             versionNumber = mainVersion
             versionType = 'release' // alpha | beta | release
             // TODO Declare Dependency
@@ -139,87 +104,23 @@ allprojects {
     }
 }
 
-//forgix {
-//    silence = false
-//    autoRun = true
-//    archiveClassifier = "all-platforms"
-//    archiveVersion = mainVersion
-//
-//    allVersion.forEach { ver ->
-//        merge(ver + '-fabric') {
-//            inputJar = project(':' + ver + '-fabric').tasks.jar.archiveFile
-//        }
-//
-//        if (ver in java17Version) {
-//            merge(ver + '-forge') {
-//                inputJar = project(':' + ver + '-forge').tasks.jar.archiveFile
-//            }
-//        } else {
-//            merge(ver + '-neoforge') {
-//                inputJar = project(':' + ver + '-neoforge').tasks.jar.archiveFile
-//            }
-//        }
-//    }
-//}
-
-//forgix {
-//    silence = false
-//    autoRun = true
-//    archiveClassifier = "all-platforms"
-//    archiveVersion = mainVersion
-//    multiversion {
-//        gradle.projectsEvaluated {
-//            def providers = subprojects
-//                    .findAll { /*it.name.endsWith('fabric') ||*/ it.name.endsWith('forge') || it.name.endsWith('neoforge') }
-//                    .collect { p ->
-//                        if (p.name.endsWith('fabric')) {
-//                            p.tasks.named('remapJar', AbstractArchiveTask).flatMap { t -> t.archiveFile }
-//                        } else {
-//                            p.tasks.named('jar', Jar).flatMap { t -> t.archiveFile }
-//                        }
-//                    }
-//
-//            inputJars.from(providers)
-//        }
-//    }
-//}
-
-def targetLoader = (findProperty("targetLoader") ?: "forge").toString()
-
 forgix {
     silence = false
     autoRun = false
     archiveVersion = mainVersion
-    archiveClassifier = "${targetLoader}"
 
     multiversion {
-        gradle.projectsEvaluated {
-            def providers = subprojects
-                    .findAll { p ->
-                        p.name.endsWith(targetLoader)
-                    }
-                    .collect { p ->
-                        if (targetLoader == "fabric") {
-                            p.tasks.named('remapJar', AbstractArchiveTask).flatMap { t -> t.archiveFile }
-                        } else {
-                            p.tasks.named('jar', Jar).flatMap { t -> t.archiveFile }
-                        }
-                    }
-            inputJars.from(providers)
-        }
+        inputJars = project.files(subprojects
+                .findAll { p ->
+                    p.name.endsWith('forge')
+                }
+                .collect { p ->
+                    p.tasks.named('jar', Jar).flatMap { t -> t.archiveFile }
+                }
+        )
     }
 }
 
-tasks.register("buildFabric", GradleBuild) {
-    group = "build"
-    description = "Build everything for Fabric."
-    tasks = ["build", "mergeVersion"]
-    startParameter.projectProperties.put("targetLoader", "fabric")
-}
-
-tasks.register("buildForge", GradleBuild) {
-    group = "build"
-    description = "Build everything for Forge/FeoForge."
-    tasks = ["build", "mergeVersion"]
-    startParameter.projectProperties.put("targetLoader", "forge")
+tasks.named('build') {
+    finalizedBy(tasks.named('mergeVersions'))
 }

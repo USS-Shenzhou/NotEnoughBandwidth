@@ -1,1 +1,0 @@
-../../../../../../../1.18.2-fabric/src/main/java/cn/ussshenzhou/client/ExampleC.java

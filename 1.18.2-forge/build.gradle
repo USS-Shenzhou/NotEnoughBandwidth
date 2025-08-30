@@ -36,7 +36,6 @@ minecraft {
             mods {
                 examplemod {
                     source sourceSets.main
-                    source project(":1.18.2-base").sourceSets.main
                 }
             }
         }
@@ -49,7 +48,6 @@ minecraft {
             mods {
                 examplemod {
                     source sourceSets.main
-                    source project(":1.18.2-base").sourceSets.main
                 }
             }
         }
@@ -64,7 +62,6 @@ minecraft {
             mods {
                 examplemod {
                     source sourceSets.main
-                    source project(":1.18.2-base").sourceSets.main
                 }
             }
             args '--mod', 'examplemod', '--all', '--output', '"' + file('src/generated/resources/') + '"'
@@ -74,7 +71,6 @@ minecraft {
 
 dependencies {
     minecraft "net.minecraftforge:forge:1.18.2-40.2.1"
-    implementation project(":1.18.2-base")
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 

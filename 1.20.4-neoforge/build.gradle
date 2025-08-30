@@ -60,7 +60,6 @@ neoForge {
     mods {
         'examplemod' {
             sourceSet sourceSets.main
-            sourceSet project(":1.20.4-base").sourceSets.main
         }
     }
 }
@@ -71,7 +70,6 @@ configurations {
 
 dependencies {
     implementation "net.neoforged:neoforge:20.4.248"
-    implementation project(":1.20.4-base")
 }
 
 tasks.withType(JavaCompile).configureEach {
