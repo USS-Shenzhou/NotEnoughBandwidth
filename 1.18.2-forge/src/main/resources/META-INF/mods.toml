@@ -1,16 +1,17 @@
 modLoader="javafml"
 loaderVersion="[25,)"
-license="CC0-1.0"
+license="GNU GPL 3.0"
 issueTrackerURL="https://example.invalid/"
+logoFile="icon-chn_500.png"
 
 [[mods]]
-modId="test_multi_project_mod_please_ignore"
+modId="neb"
 version="${file.jarVersion}"
-displayName="Test Multi-Project Mod Please Ignore"
-description="Test multi-project mod"
-authors="3TUSK"
+displayName="Not Enough Bandwidth"
+description=""
+authors="USS_Shenzhou, Burning_TNT"
 
-[[dependencies.test_multi_project_mod_please_ignore]]
+[[dependencies.neb]]
 modId="minecraft"
 mandatory=true
 versionRange="[1.18, 1.19)"

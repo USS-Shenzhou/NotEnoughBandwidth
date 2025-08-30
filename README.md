@@ -1,82 +1,31 @@
-# Pāramitā
+# 网络包优化 | Not Enough Bandwidth
 
-> When you still can't decide which loader and which version to develop with... why not choose *ALL OF THEM*?
+## 功能 | Features
 
-This is a multi-project template for those who wish to develop a single Minecraft mod on multiple Minecraft versions and 
-multiple loaders, altogether in a single place. 
+1. 优化`CustomPacketPayload`编码及对应解码，以索引替代`ResourceLocation`(Packet Type)，使模组网络包包头消耗减少为固定3-4字节（网络包`namespace`及对应的每个`path`少于256时为3字节，大于256时为4字节。即最多支持4096个模组，每个模组4096条通道。）。
+2. 优化原版经常出现大量小体积网络包的情况，在`Connection`层面拦截发送，每隔固定间隔组装为一个大网络包并进行压缩后发送。
+3. 
 
-As you can see, this template is definitely NOT for newcomers. 
-Users of this template are expected to have experiences on modding two or more Minecraft versions, as well as 
-experiences with different modding frameworks (Fabric, Forge, Quilt, ...)
 
-If you want something much simpler, [jaredlll08/MultiLoader-Template][ref-jared-template] is also a good start. 
-That template focuses on one specific Minecraft version, which is much more conventional.
+1. Optimizes the encoding and decoding of `CustomPacketPayload` by using an index instead of `ResourceLocation` (Packet Type). This reduces the mod network packet header size to a fixed 3–4 bytes (3 bytes when network namespaces and each one's paths are less than 256, otherwise 4 bytes, supporting up to 4096 mods and 4096 paths for each mod).
+2. WIP: Optimizes vanilla block entity data.
+3. WIP: Optimizes vanilla level_chunk_with_light.
 
-[ref-jared-template]: https://github.com/jaredlll08/MultiLoader-Template
+## 版权和许可 | Copyrights and Licenses
+Copyright (C) 2025 USS_Shenzhou
 
-The name of this template `Pāramitā` is [IAST][ref-IAST] of Sanskrit पारमिता, usually translated as "perfection", or 
-less commonly interpreted as "that which goes beyond". 
+本模组是自由软件，你可以再分发之和/或依照由自由软件基金会发布的 GNU 通用公共许可证修改之，无论是版本 3 许可证，还是（按你的决定）任何以后版都可以。
 
-[ref-IAST]: https://en.wikipedia.org/wiki/International_Alphabet_of_Sanskrit_Transliteration
+发布这个模组是希望它能有用，但是并无保障；甚至连可销售和符合某个特定的目的都不保证。请参看 GNU 通用公共许可证，了解详情。
 
-## Usage
+Copyright (C) 2025 USS_Shenzhou
 
-Simply clone the repository and start adding/removing subprojects based on your need. After that, you can start coding. 
-Remember, 
+This mod is free software; you can redistribute it and/or modify them under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version.
 
-  - Change the mod name from `ExampleMod` to something else.
-  - All shared code goes to `-base` projects.
-  - Loader-specific code goes to loader-specific projects. 
-  - Access Wideners used in `-base` projects must be duplicated in all loader-specific projects, unless some APIs you 
-    depend on have done so already. This will get more significant when you encounter a method/field that Forge's AT 
-    has exposed for you.
-  - Purge the entire `.git` directory and then `git init` if you need a fresh start of your `git` history.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-All `build.gradle` files should give you enough hint about what do they do.
+### 额外许可 | Additional Permissions
 
-*More coming soon*
+a）当你作为游戏玩家，加载本程序于Minecraft并游玩时，本许可证自动地授予你一切为正常加载本程序于Minecraft并游玩所必要的、不在GPL-3.0许可证内容中、或是GPL-3.0许可证所不允许的权利。如果GPL-3.0许可证内容与Minecraft EULA或其他Mojang/微软条款产生冲突，以后者为准。
 
-### How to know which projects do I need?
-
-Depends on your actual need. You probably want the latest version (as of today, it is 1.19.3) first. 
-Nevertheless, here are a few things to consider: 
-
-  - Maintaining too many loader+version combinations can make you burn out *very fast*. You have been warned.
-  - If you are on/want 1.19.*, you will need all of `1.19.2`, `1.19.3` and `1.19.4` subprojects if:
-    - You have new items (due to creative tabs changes between `1.19.2` and `1.19.3`)
-    - You have anything to do with `BakedModel` (due to various changes between `1.19.2` and `1.19.3`)
-    - You have direct reference to `ItemTransforms.TransformType` (`ItemDisplayContext` succeeds it in `1.19.4`)
-    - *to be continued*
-  - If you are on/want 1.18.*, you will need both `1.18.1` and `1.18.2` subprojects if:
-    - You have anything to do with world generation
-  - *To be continued*
-
-## How to contribute
-
-*Coming soon*
-
-## Credits
-
-Special thanks to williewillus, Hurby, Alwinfy, et al. for their multi-loader project architecture used in Botania;
-without their pioneering work, this gigantic project layout will not be possible. 
-
-Special thanks to Architectury team for their work on Architectury Loom, which enables the usage of full 
-Official Mapping on Forge with Minecraft 1.14 - 1.16.5. 
-
-Special thanks to all developers behind these projects:
-
-  - Architectury Loom
-  - Fabric Loom
-  - ForgeGradle
-  - Librarian (by ParchmentMC)
-  - MixinGradle
-  - Quilt Loom
-  - VanillaGradle
-
-## Further Reading
-
-- [Williewillus, Hubry, Alwinfy. "Maintaining Botania for Forge and Fabric — Multiloader Experience Report", BlanketCon 22.][ref-1]
-- [Darkhax, Jared. "MultiLoader Madness", BlanketCon 22.][ref-2]
-
-[ref-1]: https://www.youtube.com/watch?v=EZ-Lvtx6Wyk&list=PLC1qq1Hb0u1GI8919iCClzb_Bku-DrL4L&index=11
-[ref-2]: https://www.youtube.com/watch?v=Ec8AoD29lrw&list=PLC1qq1Hb0u1GI8919iCClzb_Bku-DrL4L&index=17
+a) As a game player, when you load and play this program in Minecraft, this license automatically grants you all rights necessary, which are not covered in the GPL-3.0 license, or are prohibited by the GPL-3.0 license, for the normal loading and playing of this program in Minecraft. In case of conflicts between the GPL-3.0 license and the Minecraft EULA or other Mojang/Microsoft terms, the latter shall prevail.

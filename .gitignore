@@ -19,3 +19,5 @@ build
 
 # VSCode
 .vscode
+
+/run/

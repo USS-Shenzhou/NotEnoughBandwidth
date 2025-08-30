@@ -60,6 +60,12 @@ subprojects { Project p ->
 
     p.afterEvaluate { Project pAfter ->
 
+        if (pAfter.name.endsWith('forge')) {
+            pAfter.processResources {
+                from rootProject.project('share').sourceSets.main.resources
+            }
+        }
+
         def projectExt = pAfter.extensions.platformInfo as PlatformInfoExtension
 
         pAfter.archivesBaseName += "-${projectExt.platform.get()}-${projectExt.minecraftVersion.get()}"
@@ -83,12 +89,12 @@ subprojects { Project p ->
 
         pAfter.jar {
             manifest.attributes([
-                    "Specification-Title"   : "Example-Mod",
-                    "Specification-Vendor"  : "Whoever comes up with the spec of the mod",
+                    "Specification-Title"   : "NotEnoughBandwidth",
+                    "Specification-Vendor"  : "USS_Shenzhou, Burning_TNT",
                     "Specification-Version" : "1.0",
                     "Implementation-Title"  : "${pAfter.archivesBaseName}",
                     "Implementation-Version": "${pAfter.version}",
-                    "Implementation-Vendor" : "Whoever actually writes the mod"
+                    "Implementation-Vendor" : "USS_Shenzhou, Burning_TNT"
             ])
         }
     }

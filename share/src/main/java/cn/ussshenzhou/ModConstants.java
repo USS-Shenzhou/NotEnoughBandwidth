@@ -1,5 +1,8 @@
 package cn.ussshenzhou;
 
+/**
+ * @author USS_Shenzhou
+ */
 public class ModConstants {
-    public static final String MOD_ID = "test_multi_project_mod_please_ignore";
+    public static final String MOD_ID = "neb";
 }
