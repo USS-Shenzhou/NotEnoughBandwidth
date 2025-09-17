@@ -15,9 +15,11 @@ interface PlatformInfoExtension {
     ListProperty<String> getSupportedMinecraftVersions();
 }
 
-def mainVersion = '1.0.3'
+def mainVersion = '0.4.0'
 def java17Version = ['1.18.2', '1.19.4', '1.20.1'] as Set
 def allVersion = ['1.18.2', '1.19.4', '1.20.1', '1.20.4', '1.21.1']
+
+version = mainVersion
 
 subprojects { Project p ->
     apply plugin: 'java'
@@ -29,7 +31,7 @@ subprojects { Project p ->
     java.toolchain.languageVersion = JavaLanguageVersion.of(platformInfo.getMinecraftVersion().getOrElse("null") in java17Version ? 17 : 21)
     java.withSourcesJar()
 
-    p.archivesBaseName = "ExampleMultiProjectMod"
+    p.archivesBaseName = rootProject.name
     p.version = mainVersion
 
     p.repositories {
@@ -42,12 +44,6 @@ subprojects { Project p ->
             content {
                 includeGroup 'org.spongepowered'
             }
-        }
-    }
-
-    if (!p.name.startsWith('share')) {
-        p.dependencies {
-            implementation project(':share')
         }
     }
 
@@ -66,21 +62,17 @@ subprojects { Project p ->
             //forge minecraftLibrary
             pAfter.dependencies {
                 minecraftLibrary(jarJar(implementation("com.github.luben:zstd-jni:1.5.6-9")))
+                jarJar(implementation(project(':share')))
             }
         } else if (p.name.split('-')[0] in allVersion) {
             //neoforge additionalRuntimeClasspath
             pAfter.dependencies {
                 additionalRuntimeClasspath(jarJar(implementation("com.github.luben:zstd-jni:1.5.6-9")))
+                jarJar(implementation(project(':share')))
             }
         } else {
             pAfter.dependencies {
                 implementation "com.github.luben:zstd-jni:1.5.6-9"
-            }
-        }
-
-        if (pAfter.name.endsWith('forge')) {
-            pAfter.processResources {
-                from rootProject.project('share').sourceSets.main.resources
             }
         }
 

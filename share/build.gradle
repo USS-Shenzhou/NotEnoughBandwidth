@@ -60,3 +60,10 @@ dependencies {
 tasks.withType(JavaCompile).configureEach {
     it.options.release = 17
 }
+
+version = rootProject.version
+jar {
+    archiveAppendix = ''
+    archiveClassifier = ''
+    archiveBaseName = rootProject.name + '-' + project.name
+}
