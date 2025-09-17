@@ -1,0 +1,25 @@
+package cn.ussshenzhou.neb;
+
+import cn.ussshenzhou.ModConstants;
+import com.mojang.logging.LogUtils;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.common.Mod;
+import org.slf4j.Logger;
+
+/**
+ * @author USS_Shenzhou
+ */
+@Mod(ModConstants.MOD_ID)
+public class NotEnoughBandwidth {
+    private static final Logger LOGGER = LogUtils.getLogger();
+
+    public NotEnoughBandwidth(IEventBus modEventBus, ModContainer modContainer) {
+        if (ModList.get().isLoaded("neoforwarding")){
+            throw new RuntimeException("Not Enough Bandwidth is not compatible with NeoForwarding.");
+        }
+    }
+
+
+}

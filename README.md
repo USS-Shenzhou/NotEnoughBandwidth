@@ -29,3 +29,11 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 a）当你作为游戏玩家，加载本程序于Minecraft并游玩时，本许可证自动地授予你一切为正常加载本程序于Minecraft并游玩所必要的、不在GPL-3.0许可证内容中、或是GPL-3.0许可证所不允许的权利。如果GPL-3.0许可证内容与Minecraft EULA或其他Mojang/微软条款产生冲突，以后者为准。
 
 a) As a game player, when you load and play this program in Minecraft, this license automatically grants you all rights necessary, which are not covered in the GPL-3.0 license, or are prohibited by the GPL-3.0 license, for the normal loading and playing of this program in Minecraft. In case of conflicts between the GPL-3.0 license and the Minecraft EULA or other Mojang/Microsoft terms, the latter shall prevail.
+
+
+## 其他开源信息|Other Open-source Information
+
+1. https://github.com/luben/zstd-jni ，按BSD-2-Clause license取得许可。
+
+
+1. https://github.com/luben/zstd-jni ，licensed under BSD-2-Clause。

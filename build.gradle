@@ -2,6 +2,7 @@ plugins {
     id 'com.modrinth.minotaur' version '2.+' apply false
     id "org.jetbrains.gradle.plugin.idea-ext" version "1.1.+"
     id "io.github.pacifistmc.forgix" version "2.+"
+    id 'project-report'
 }
 
 interface PlatformInfoExtension {
@@ -21,6 +22,7 @@ def allVersion = ['1.18.2', '1.19.4', '1.20.1', '1.20.4', '1.21.1']
 subprojects { Project p ->
     apply plugin: 'java'
     apply plugin: 'com.modrinth.minotaur' // https://stackoverflow.com/a/50153617
+    apply plugin: 'project-report'
 
     var platformInfo = p.extensions.create('platformInfo', PlatformInfoExtension)
 
@@ -59,6 +61,22 @@ subprojects { Project p ->
     }
 
     p.afterEvaluate { Project pAfter ->
+
+        if (pAfter.name.split('-')[0] in java17Version) {
+            //forge minecraftLibrary
+            pAfter.dependencies {
+                minecraftLibrary(jarJar(implementation("com.github.luben:zstd-jni:1.5.6-9")))
+            }
+        } else if (p.name.split('-')[0] in allVersion) {
+            //neoforge additionalRuntimeClasspath
+            pAfter.dependencies {
+                additionalRuntimeClasspath(jarJar(implementation("com.github.luben:zstd-jni:1.5.6-9")))
+            }
+        } else {
+            pAfter.dependencies {
+                implementation "com.github.luben:zstd-jni:1.5.6-9"
+            }
+        }
 
         if (pAfter.name.endsWith('forge')) {
             pAfter.processResources {
