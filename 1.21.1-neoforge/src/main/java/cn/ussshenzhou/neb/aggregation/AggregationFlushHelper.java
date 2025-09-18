@@ -1,4 +1,4 @@
-package cn.ussshenzhou.neb.util;
+package cn.ussshenzhou.neb.aggregation;
 
 /**
  * @author USS_Shenzhou

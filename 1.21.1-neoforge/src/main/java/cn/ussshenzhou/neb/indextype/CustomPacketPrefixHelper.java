@@ -1,6 +1,5 @@
-package cn.ussshenzhou.neb.util;
+package cn.ussshenzhou.neb.indextype;
 
-import cn.ussshenzhou.neb.managers.NamespaceIndexManager;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.PacketFlow;

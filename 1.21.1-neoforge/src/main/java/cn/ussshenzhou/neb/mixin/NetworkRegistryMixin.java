@@ -1,7 +1,7 @@
 package cn.ussshenzhou.neb.mixin;
 
-import cn.ussshenzhou.neb.managers.AggregationManager;
-import cn.ussshenzhou.neb.managers.NamespaceIndexManager;
+import cn.ussshenzhou.neb.aggregation.AggregationManager;
+import cn.ussshenzhou.neb.indextype.NamespaceIndexManager;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.network.protocol.configuration.ClientConfigurationPacketListener;

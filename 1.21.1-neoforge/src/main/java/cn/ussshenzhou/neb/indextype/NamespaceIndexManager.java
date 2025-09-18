@@ -1,4 +1,4 @@
-package cn.ussshenzhou.neb.managers;
+package cn.ussshenzhou.neb.indextype;
 
 import com.mojang.logging.LogUtils;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;

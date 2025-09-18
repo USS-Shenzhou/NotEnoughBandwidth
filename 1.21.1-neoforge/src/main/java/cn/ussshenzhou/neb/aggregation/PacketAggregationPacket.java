@@ -1,7 +1,7 @@
-package cn.ussshenzhou.neb.modnetwork;
+package cn.ussshenzhou.neb.aggregation;
 
 import cn.ussshenzhou.ModConstants;
-import cn.ussshenzhou.neb.managers.NamespaceIndexManager;
+import cn.ussshenzhou.neb.indextype.NamespaceIndexManager;
 import cn.ussshenzhou.util.ByteBufHelper;
 import com.mojang.logging.LogUtils;
 import io.netty.buffer.ByteBufAllocator;

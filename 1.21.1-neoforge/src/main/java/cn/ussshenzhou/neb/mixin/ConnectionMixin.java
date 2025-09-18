@@ -1,7 +1,7 @@
 package cn.ussshenzhou.neb.mixin;
 
-import cn.ussshenzhou.neb.managers.AggregationManager;
-import cn.ussshenzhou.neb.modnetwork.PacketAggregationPacket;
+import cn.ussshenzhou.neb.aggregation.AggregationManager;
+import cn.ussshenzhou.neb.aggregation.PacketAggregationPacket;
 import net.minecraft.network.Connection;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.network.PacketListener;

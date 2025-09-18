@@ -1,7 +1,7 @@
-package cn.ussshenzhou.neb.modnetwork;
+package cn.ussshenzhou.neb.util;
 
 import cn.ussshenzhou.ModConstants;
-import cn.ussshenzhou.neb.NotEnoughBandwidth;
+import cn.ussshenzhou.neb.aggregation.PacketAggregationPacket;
 import net.minecraft.network.codec.StreamCodec;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;

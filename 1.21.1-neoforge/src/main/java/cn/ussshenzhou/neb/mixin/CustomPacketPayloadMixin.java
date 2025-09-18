@@ -1,6 +1,6 @@
 package cn.ussshenzhou.neb.mixin;
 
-import cn.ussshenzhou.neb.util.CustomPacketPrefixHelper;
+import cn.ussshenzhou.neb.indextype.CustomPacketPrefixHelper;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
