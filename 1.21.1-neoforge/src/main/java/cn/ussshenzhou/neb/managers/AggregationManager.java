@@ -69,9 +69,10 @@ public class AggregationManager {
                 LogUtils.getLogger().error("Failed to get PacketEncoder of connection {} {}.", connection.getDirection(), connection.getRemoteAddress());
                 return;
             }
+            var sendPackets = new HashMap<>(packetsMap);
             connection.send(connection.getSending() == PacketFlow.CLIENTBOUND
-                    ? new ClientboundCustomPayloadPacket(new PacketAggregationPacket(packetsMap, encoder.getProtocolInfo()))
-                    : new ServerboundCustomPayloadPacket(new PacketAggregationPacket(packetsMap, encoder.getProtocolInfo()))
+                    ? new ClientboundCustomPayloadPacket(new PacketAggregationPacket(sendPackets, encoder.getProtocolInfo()))
+                    : new ServerboundCustomPayloadPacket(new PacketAggregationPacket(sendPackets, encoder.getProtocolInfo()))
             );
             packetsMap.clear();
         });

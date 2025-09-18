@@ -61,14 +61,16 @@ subprojects { Project p ->
         if (pAfter.name.split('-')[0] in java17Version) {
             //forge minecraftLibrary
             pAfter.dependencies {
-                minecraftLibrary(jarJar(implementation("com.github.luben:zstd-jni:1.5.6-9")))
-                jarJar(implementation(project(':share')))
+                minecraftLibrary(jarJar(implementation("com.github.luben:zstd-jni:1.5.6-9")){
+                    jarJar.pin(it, '[1.0,2.0)')
+                })
+                minecraftLibrary(jarJar(implementation(project(':share'))))
             }
         } else if (p.name.split('-')[0] in allVersion) {
             //neoforge additionalRuntimeClasspath
             pAfter.dependencies {
                 additionalRuntimeClasspath(jarJar(implementation("com.github.luben:zstd-jni:1.5.6-9")))
-                jarJar(implementation(project(':share')))
+                additionalRuntimeClasspath(jarJar(implementation(project(':share'))))
             }
         } else {
             pAfter.dependencies {

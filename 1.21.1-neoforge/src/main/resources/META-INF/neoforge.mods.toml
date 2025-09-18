@@ -12,6 +12,9 @@ displayName="Not Enough Bandwidth"
 description=""
 authors="USS_Shenzhou, Burning_TNT"
 
+[[mixins]]
+config="neb.mixins.json"
+
 [[dependencies.neb]]
 modId="minecraft"
 mandatory=true

@@ -114,6 +114,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
         // S
         int size = buffer.readVarInt();
         this.buf = new FriendlyByteBuf(ByteBufHelper.decompress(buffer.retainedDuplicate(), size));
+        buffer.readerIndex(buffer.writerIndex());
     }
 
     public void handler(IPayloadContext context) {
