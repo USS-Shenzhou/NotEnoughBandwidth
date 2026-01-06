@@ -1,6 +1,7 @@
 package cn.ussshenzhou.notenoughbandwidth.mixin;
 
-import cn.ussshenzhou.notenoughbandwidth.managers.PacketTypeIndexManager;
+import cn.ussshenzhou.notenoughbandwidth.aggregation.AggregationManager;
+import cn.ussshenzhou.notenoughbandwidth.indextype.NamespaceIndexManager;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.network.protocol.configuration.ClientConfigurationPacketListener;
@@ -25,11 +26,13 @@ public class NetworkRegistryMixin {
 
     @Inject(method = "initializeNeoForgeConnection(Lnet/minecraft/network/protocol/configuration/ClientConfigurationPacketListener;Lnet/neoforged/neoforge/network/registration/NetworkPayloadSetup;)V", at = @At("TAIL"))
     private static void nebwGetAllPacketResourceLocation(ClientConfigurationPacketListener listener, NetworkPayloadSetup setup, CallbackInfo ci) {
-        PacketTypeIndexManager.init(setup);
+        NamespaceIndexManager.init(setup);
+        AggregationManager.init();
     }
 
     @Inject(method = "initializeNeoForgeConnection(Lnet/minecraft/network/protocol/configuration/ServerConfigurationPacketListener;Ljava/util/Map;)V", at = @At("TAIL"))
     private static void nebwGetAllPacketResourceLocation(ServerConfigurationPacketListener listener, Map<ConnectionProtocol, Set<ModdedNetworkQueryComponent>> clientChannels, CallbackInfo ci, @Local NetworkPayloadSetup setup) {
-        PacketTypeIndexManager.init(setup);
+        NamespaceIndexManager.init(setup);
+        AggregationManager.init();
     }
 }

@@ -1,6 +1,7 @@
-package cn.ussshenzhou.notenoughbandwidth.modnetwork;
+package cn.ussshenzhou.notenoughbandwidth.util;
 
-import cn.ussshenzhou.notenoughbandwidth.NotEnoughBandwidth;
+import cn.ussshenzhou.notenoughbandwidth.ModConstants;
+import cn.ussshenzhou.notenoughbandwidth.aggregation.PacketAggregationPacket;
 import net.minecraft.network.codec.StreamCodec;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -10,12 +11,12 @@ import net.neoforged.neoforge.network.handling.DirectionalPayloadHandler;
 /**
  * @author USS_Shenzhou
  */
-@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber
 public class ModNetworkRegistry {
 
     @SubscribeEvent
     public static void networkPacketRegistry(RegisterPayloadHandlersEvent event) {
-        var registrar = event.registrar(NotEnoughBandwidth.MODID);
+        var registrar = event.registrar(ModConstants.MOD_ID);
 
         registrar.commonBidirectional(PacketAggregationPacket.TYPE, StreamCodec.ofMember(PacketAggregationPacket::encode, PacketAggregationPacket::new), new DirectionalPayloadHandler<>(
                 PacketAggregationPacket::handler,

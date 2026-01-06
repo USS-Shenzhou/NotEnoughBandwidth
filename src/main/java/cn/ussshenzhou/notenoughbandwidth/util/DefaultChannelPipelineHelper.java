@@ -1,4 +1,4 @@
-package cn.ussshenzhou.notenoughbandwidth.helpers;
+package cn.ussshenzhou.notenoughbandwidth.util;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DefaultChannelPipeline;

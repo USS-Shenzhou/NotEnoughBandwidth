@@ -1,6 +1,5 @@
-package cn.ussshenzhou.notenoughbandwidth.helpers;
+package cn.ussshenzhou.notenoughbandwidth.indextype;
 
-import cn.ussshenzhou.notenoughbandwidth.managers.PacketTypeIndexManager;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.PacketFlow;
@@ -32,9 +31,9 @@ import java.util.List;
  * <pre>
  * - If i=0 (not indexed):
  *
- *   ┌---------------- N bytes ----------------┐
- *   │ ResourceLocation (packet type) in UTF-8 │
- *   └-----------------------------------------┘
+ *   ┌---------------- N bytes ----------------
+ *   │ ResourceLocation (packet type) in UTF-8
+ *   └-----------------------------------------
  *
  * - If i=1 and t=0 (indexed, NOT tight):
  *
@@ -73,7 +72,7 @@ public class CustomPacketPrefixHelper {
     }
 
     public CustomPacketPrefixHelper index(ResourceLocation type) {
-        int index = PacketTypeIndexManager.getIndex(type);
+        int index = NamespaceIndexManager.getNebIndex(type);
         if (index == 0) {
             this.type = type;
             return this;
@@ -104,9 +103,9 @@ public class CustomPacketPrefixHelper {
             return buf.readResourceLocation();
         } else {
             if (fixed >>> 6 == 0) {
-                return PacketTypeIndexManager.getResourceLocation(buf.readUnsignedMedium(), false);
+                return NamespaceIndexManager.getResourceLocation(buf.readUnsignedMedium(), false);
             } else {
-                return PacketTypeIndexManager.getResourceLocation(buf.readUnsignedShort(), true);
+                return NamespaceIndexManager.getResourceLocation(buf.readUnsignedShort(), true);
             }
         }
     }

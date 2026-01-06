@@ -1,9 +1,8 @@
 package cn.ussshenzhou.notenoughbandwidth.mixin;
 
-import cn.ussshenzhou.notenoughbandwidth.managers.PacketAggregationManager;
-import cn.ussshenzhou.notenoughbandwidth.modnetwork.PacketAggregationPacket;
-import com.mojang.logging.LogUtils;
-import io.netty.channel.Channel;
+import cn.ussshenzhou.NotEnoughBandwidthConfig;
+import cn.ussshenzhou.notenoughbandwidth.aggregation.AggregationManager;
+import cn.ussshenzhou.notenoughbandwidth.aggregation.PacketAggregationPacket;
 import net.minecraft.network.Connection;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.network.PacketListener;
@@ -13,9 +12,6 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.network.protocol.game.ClientboundCommandsPacket;
-import net.neoforged.neoforge.network.payload.MinecraftRegisterPayload;
-import net.neoforged.neoforge.network.payload.MinecraftUnregisterPayload;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -42,7 +38,11 @@ public abstract class ConnectionMixin {
         if (this.packetListener != null && this.packetListener.protocol() != ConnectionProtocol.PLAY) {
             return;
         }
+        if (NotEnoughBandwidthConfig.skipType(packet.type().id().toString())) {
+            return;
+        }
         if (packet instanceof BundlePacket<?> bundlePacket) {
+            //de-bundle
             bundlePacket.subPackets().forEach(p -> this.send(p, listener, flush));
             ci.cancel();
             return;
@@ -53,7 +53,7 @@ public abstract class ConnectionMixin {
         if (packet instanceof ClientboundCustomPayloadPacket(CustomPacketPayload payload) && payload instanceof PacketAggregationPacket) {
             return;
         }
-        if (!PacketAggregationManager.aboutToSend(packet, (Connection) (Object) this)) {
+        if (!AggregationManager.aboutToSend(packet, (Connection) (Object) this)) {
             ci.cancel();
             return;
         }
