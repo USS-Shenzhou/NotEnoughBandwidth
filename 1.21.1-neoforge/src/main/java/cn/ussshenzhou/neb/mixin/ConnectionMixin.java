@@ -1,5 +1,7 @@
 package cn.ussshenzhou.neb.mixin;
 
+import cn.ussshenzhou.NotEnoughBandwidthConfig;
+import cn.ussshenzhou.neb.NotEnoughBandwidth;
 import cn.ussshenzhou.neb.aggregation.AggregationManager;
 import cn.ussshenzhou.neb.aggregation.PacketAggregationPacket;
 import net.minecraft.network.Connection;
@@ -35,6 +37,9 @@ public abstract class ConnectionMixin {
     @Inject(method = "send(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketSendListener;Z)V", at = @At("HEAD"), cancellable = true)
     private void nebwPacketAggregate(Packet<?> packet, PacketSendListener listener, boolean flush, CallbackInfo ci) {
         if (this.packetListener != null && this.packetListener.protocol() != ConnectionProtocol.PLAY) {
+            return;
+        }
+        if (NotEnoughBandwidthConfig.skipType(packet.type().id().toString())) {
             return;
         }
         if (packet instanceof BundlePacket<?> bundlePacket) {

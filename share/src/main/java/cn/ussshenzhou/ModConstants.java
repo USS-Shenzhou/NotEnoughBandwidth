@@ -1,5 +1,7 @@
 package cn.ussshenzhou;
 
+import cn.ussshenzhou.config.ConfigHelper;
+
 /**
  * @author USS_Shenzhou
  */

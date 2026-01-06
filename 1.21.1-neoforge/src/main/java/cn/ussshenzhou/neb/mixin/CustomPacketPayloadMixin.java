@@ -1,5 +1,6 @@
 package cn.ussshenzhou.neb.mixin;
 
+import cn.ussshenzhou.NotEnoughBandwidthConfig;
 import cn.ussshenzhou.neb.indextype.CustomPacketPrefixHelper;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.network.FriendlyByteBuf;
@@ -23,7 +24,7 @@ public class CustomPacketPayloadMixin {
 
     @Redirect(method = "writeCap(Lnet/minecraft/network/FriendlyByteBuf;Lnet/minecraft/network/protocol/common/custom/CustomPacketPayload$Type;Lnet/minecraft/network/protocol/common/custom/CustomPacketPayload;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/FriendlyByteBuf;writeResourceLocation(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/network/FriendlyByteBuf;"))
     private FriendlyByteBuf nebwIndexedHeaderEncode(FriendlyByteBuf buf, ResourceLocation resourceLocation) {
-        if (val$protocol != ConnectionProtocol.PLAY) {
+        if (NotEnoughBandwidthConfig.skipType(resourceLocation.toString()) || val$protocol != ConnectionProtocol.PLAY) {
             buf.writeResourceLocation(resourceLocation);
             return buf;
         }
@@ -35,6 +36,14 @@ public class CustomPacketPayloadMixin {
 
     @Redirect(method = "decode(Lnet/minecraft/network/FriendlyByteBuf;)Lnet/minecraft/network/protocol/common/custom/CustomPacketPayload;", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/FriendlyByteBuf;readResourceLocation()Lnet/minecraft/resources/ResourceLocation;"))
     private ResourceLocation nebwIndexedHeaderDecode(FriendlyByteBuf buf) {
+        try {
+            var tryRead = new FriendlyByteBuf(buf.retainedDuplicate());
+            var tryType = tryRead.readResourceLocation();
+            if (NotEnoughBandwidthConfig.skipType(tryType.toString())) {
+                return buf.readResourceLocation();
+            }
+        } catch (Exception ignored) {
+        }
         if (val$protocol != ConnectionProtocol.PLAY) {
             return buf.readResourceLocation();
         }

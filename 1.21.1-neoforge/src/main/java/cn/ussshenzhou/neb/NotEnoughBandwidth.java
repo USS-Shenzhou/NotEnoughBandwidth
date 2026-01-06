@@ -1,6 +1,8 @@
 package cn.ussshenzhou.neb;
 
 import cn.ussshenzhou.ModConstants;
+import cn.ussshenzhou.NotEnoughBandwidthConfig;
+import cn.ussshenzhou.config.ConfigHelper;
 import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -19,6 +21,7 @@ public class NotEnoughBandwidth {
         if (ModList.get().isLoaded("neoforwarding")){
             throw new RuntimeException("Not Enough Bandwidth is not compatible with NeoForwarding.");
         }
+        ConfigHelper.loadConfig(new NotEnoughBandwidthConfig());
     }
 
 

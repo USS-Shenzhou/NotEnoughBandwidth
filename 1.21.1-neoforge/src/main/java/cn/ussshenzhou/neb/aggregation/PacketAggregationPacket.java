@@ -1,6 +1,8 @@
 package cn.ussshenzhou.neb.aggregation;
 
 import cn.ussshenzhou.ModConstants;
+import cn.ussshenzhou.NotEnoughBandwidthConfig;
+import cn.ussshenzhou.config.ConfigHelper;
 import cn.ussshenzhou.neb.indextype.NamespaceIndexManager;
 import cn.ussshenzhou.util.ByteBufHelper;
 import com.mojang.logging.LogUtils;
@@ -65,19 +67,29 @@ public class PacketAggregationPacket implements CustomPacketPayload {
             encodePackets(rawBuf, tag, packets);
         });
         var compressedBuf = new FriendlyByteBuf(ByteBufHelper.compress(rawBuf));
-        if (LogUtils.getLogger().isTraceEnabled()) {
-            LogUtils.getLogger().trace("Packet aggregation compressed: {} bytes-> {} bytes ( {} %).",
-                    rawBuf.readableBytes(),
-                    compressedBuf.readableBytes(),
-                    String.format("%.2f", 100f * compressedBuf.readableBytes() / rawBuf.readableBytes())
-            );
-        }
+        logCompressRatio(rawBuf, compressedBuf);
         // S
         buffer.writeVarInt(rawBuf.readableBytes());
         buffer.writeBytes(compressedBuf);
 
         rawBuf.release();
         compressedBuf.release();
+    }
+
+    private static void logCompressRatio(FriendlyByteBuf rawBuf, FriendlyByteBuf compressedBuf) {
+        if (ConfigHelper.getConfigRead(NotEnoughBandwidthConfig.class).debugLog) {
+            LogUtils.getLogger().debug("Packet aggregation compressed: {} bytes-> {} bytes ( {} %).",
+                    rawBuf.readableBytes(),
+                    compressedBuf.readableBytes(),
+                    String.format("%.2f", 100f * compressedBuf.readableBytes() / rawBuf.readableBytes())
+            );
+        } else {
+            LogUtils.getLogger().trace("Packet aggregation compressed: {} bytes-> {} bytes ( {} %).",
+                    rawBuf.readableBytes(),
+                    compressedBuf.readableBytes(),
+                    String.format("%.2f", 100f * compressedBuf.readableBytes() / rawBuf.readableBytes())
+            );
+        }
     }
 
     private void encodePackets(FriendlyByteBuf raw, ResourceLocation type, Collection<Packet<?>> packets) {
