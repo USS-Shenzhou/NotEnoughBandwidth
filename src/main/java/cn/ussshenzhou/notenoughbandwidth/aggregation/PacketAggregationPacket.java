@@ -6,14 +6,14 @@ import cn.ussshenzhou.notenoughbandwidth.config.ConfigHelper;
 import cn.ussshenzhou.notenoughbandwidth.indextype.NamespaceIndexManager;
 import cn.ussshenzhou.notenoughbandwidth.util.ByteBufHelper;
 import com.mojang.logging.LogUtils;
+import com.mojang.logging.annotations.MethodsReturnNonnullByDefault;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.ProtocolInfo;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.common.extensions.ICommonPacketListener;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
@@ -27,19 +27,19 @@ import java.util.Map;
  */
 @MethodsReturnNonnullByDefault
 public class PacketAggregationPacket implements CustomPacketPayload {
-    public static final Type<PacketAggregationPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "packet_aggregation_packet"));
+    public static final Type<PacketAggregationPacket> TYPE = new Type<>(Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "packet_aggregation_packet"));
 
     @Override
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 
-    private final Map<ResourceLocation, ArrayList<Packet<?>>> packets;
+    private final Map<Identifier, ArrayList<Packet<?>>> packets;
     private final FriendlyByteBuf buf;
     // only used for encode
     private ProtocolInfo<?> protocolInfo;
 
-    public PacketAggregationPacket(Map<ResourceLocation, ArrayList<Packet<?>>> packets, ProtocolInfo<?> protocolInfo) {
+    public PacketAggregationPacket(Map<Identifier, ArrayList<Packet<?>>> packets, ProtocolInfo<?> protocolInfo) {
         this.packets = packets;
         this.buf = new FriendlyByteBuf(Unpooled.buffer());
         this.protocolInfo = protocolInfo;
@@ -92,7 +92,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
         }
     }
 
-    private void encodePackets(FriendlyByteBuf raw, ResourceLocation type, Collection<Packet<?>> packets) {
+    private void encodePackets(FriendlyByteBuf raw, Identifier type, Collection<Packet<?>> packets) {
         int nebIndex = NamespaceIndexManager.getNebIndexNotTight(type);
         // b, t
         if (nebIndex != 0) {
@@ -100,7 +100,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
             raw.writeMedium(nebIndex);
         } else {
             raw.writeBoolean(false);
-            raw.writeResourceLocation(type);
+            raw.writeIdentifier(type);
         }
         // n
         raw.writeVarInt(packets.size());
@@ -140,8 +140,8 @@ public class PacketAggregationPacket implements CustomPacketPayload {
     private void decodePackets(FriendlyByteBuf buf, ICommonPacketListener listener) {
         // b, t
         var type = buf.readBoolean()
-                ? NamespaceIndexManager.getResourceLocation(buf.readUnsignedMedium() & 0x00ffffff, false)
-                : buf.readResourceLocation();
+                ? NamespaceIndexManager.getIdentifier(buf.readUnsignedMedium() & 0x00ffffff, false)
+                : buf.readIdentifier();
         // n
         var amount = buf.readVarInt();
         for (var i = 0; i < amount; i++) {

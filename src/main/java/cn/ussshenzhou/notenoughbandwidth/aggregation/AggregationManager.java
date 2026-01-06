@@ -9,7 +9,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -18,12 +18,12 @@ import java.util.concurrent.*;
  * @author USS_Shenzhou
  */
 public class AggregationManager {
-    private static final ResizableCounter<ResourceLocation> FREQUENCY_COUNTER = new ResizableCounter<>(AggregationFlushHelper.getFlushCountInSeconds());
-    private static final HashSet<ResourceLocation> WHITE_LIST = new HashSet<>() {{
-        add(ResourceLocation.withDefaultNamespace("level_chunk_with_light"));
-        add(ResourceLocation.withDefaultNamespace("custom_payload"));
+    private static final ResizableCounter<Identifier> FREQUENCY_COUNTER = new ResizableCounter<>(AggregationFlushHelper.getFlushCountInSeconds());
+    private static final HashSet<Identifier> WHITE_LIST = new HashSet<>() {{
+        add(Identifier.withDefaultNamespace("level_chunk_with_light"));
+        add(Identifier.withDefaultNamespace("custom_payload"));
     }};
-    private static final WeakHashMap<Connection, HashMap<ResourceLocation, ArrayList<Packet<?>>>> PACKET_BUFFER = new WeakHashMap<>();
+    private static final WeakHashMap<Connection, HashMap<Identifier, ArrayList<Packet<?>>>> PACKET_BUFFER = new WeakHashMap<>();
     private static final ScheduledExecutorService TIMER = Executors.newSingleThreadScheduledExecutor();
     private static final ArrayList<ScheduledFuture<?>> TASKS = new ArrayList<>();
 
@@ -35,7 +35,7 @@ public class AggregationManager {
         TASKS.add(TIMER.scheduleAtFixedRate(AggregationManager::flush, 0, AggregationFlushHelper.getFlushPeriodInMilliseconds(), TimeUnit.MILLISECONDS));
     }
 
-    private static boolean isAggregating(ResourceLocation type) {
+    private static boolean isAggregating(Identifier type) {
         if (WHITE_LIST.contains(type)) {
             return true;
         }

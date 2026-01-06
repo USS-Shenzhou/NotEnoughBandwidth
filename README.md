@@ -2,12 +2,12 @@
 
 ## 功能 | Features
 
-1. 优化`CustomPacketPayload`编码及对应解码，以索引替代`ResourceLocation`(Packet Type)，使模组网络包包头消耗减少为固定3-4字节（网络包`namespace`及对应的每个`path`少于256时为3字节，大于256时为4字节。即最多支持4096个模组，每个模组4096条通道。）。
+1. 优化`CustomPacketPayload`编码及对应解码，以索引替代`Identifier`(Packet Type)，使模组网络包包头消耗减少为固定3-4字节（网络包`namespace`及对应的每个`path`少于256时为3字节，大于256时为4字节。即最多支持4096个模组，每个模组4096条通道。）。
 2. 优化原版经常出现大量小体积网络包的情况，在`Connection`层面拦截发送，每隔固定间隔组装为一个大网络包并进行压缩后发送。
 3. 
 
 
-1. Optimizes the encoding and decoding of `CustomPacketPayload` by using an index instead of `ResourceLocation` (Packet Type). This reduces the mod network packet header size to a fixed 3–4 bytes (3 bytes when network namespaces and each one's paths are less than 256, otherwise 4 bytes, supporting up to 4096 mods and 4096 paths for each mod).
+1. Optimizes the encoding and decoding of `CustomPacketPayload` by using an index instead of `Identifier` (Packet Type). This reduces the mod network packet header size to a fixed 3–4 bytes (3 bytes when network namespaces and each one's paths are less than 256, otherwise 4 bytes, supporting up to 4096 mods and 4096 paths for each mod).
 2. WIP: Optimizes vanilla block entity data.
 3. WIP: Optimizes vanilla level_chunk_with_light.
 

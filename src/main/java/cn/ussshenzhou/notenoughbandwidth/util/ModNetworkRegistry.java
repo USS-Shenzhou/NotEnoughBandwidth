@@ -6,7 +6,6 @@ import net.minecraft.network.codec.StreamCodec;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.network.handling.DirectionalPayloadHandler;
 
 /**
  * @author USS_Shenzhou
@@ -18,9 +17,6 @@ public class ModNetworkRegistry {
     public static void networkPacketRegistry(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar(ModConstants.MOD_ID);
 
-        registrar.commonBidirectional(PacketAggregationPacket.TYPE, StreamCodec.ofMember(PacketAggregationPacket::encode, PacketAggregationPacket::new), new DirectionalPayloadHandler<>(
-                PacketAggregationPacket::handler,
-                PacketAggregationPacket::handler
-        ));
+        registrar.commonBidirectional(PacketAggregationPacket.TYPE, StreamCodec.ofMember(PacketAggregationPacket::encode, PacketAggregationPacket::new), PacketAggregationPacket::handler);
     }
 }

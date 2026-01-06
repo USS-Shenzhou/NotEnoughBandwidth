@@ -4,14 +4,14 @@ import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 /**
  * Instead of vanilla {@link net.minecraft.network.protocol.common.custom.CustomPacketPayload#codec(CustomPacketPayload.FallbackProvider, List, ConnectionProtocol, PacketFlow)},
- * we here use such protocol to avoid putting a huge ResourceLocation into bytebuf.
+ * we here use such protocol to avoid putting a huge Identifier into bytebuf.
  * <p>
  * <h4>Fixed 8 bits header</h4>
  * <pre>
@@ -32,7 +32,7 @@ import java.util.List;
  * - If i=0 (not indexed):
  *
  *   ┌---------------- N bytes ----------------
- *   │ ResourceLocation (packet type) in UTF-8
+ *   │ Identifier (packet type) in UTF-8
  *   └-----------------------------------------
  *
  * - If i=1 and t=0 (indexed, NOT tight):
@@ -59,7 +59,7 @@ public class CustomPacketPrefixHelper {
     private static final ThreadLocal<CustomPacketPrefixHelper> INSTANCES = ThreadLocal.withInitial(CustomPacketPrefixHelper::new);
 
     private int prefix = 0;
-    private ResourceLocation type = null;
+    private Identifier type = null;
 
     private CustomPacketPrefixHelper() {
     }
@@ -71,7 +71,7 @@ public class CustomPacketPrefixHelper {
         return instance;
     }
 
-    public CustomPacketPrefixHelper index(ResourceLocation type) {
+    public CustomPacketPrefixHelper index(Identifier type) {
         int index = NamespaceIndexManager.getNebIndex(type);
         if (index == 0) {
             this.type = type;
@@ -85,7 +85,7 @@ public class CustomPacketPrefixHelper {
     public void save(FriendlyByteBuf buf) {
         if (prefix >>> 31 == 0) {
             buf.writeByte(prefix >>> 24);
-            buf.writeResourceLocation(type);
+            buf.writeIdentifier(type);
         }
         if (prefix >>> 31 == 1) {
             if ((prefix >>> 30 & 1) == 1) {
@@ -97,15 +97,15 @@ public class CustomPacketPrefixHelper {
     }
 
     @Nullable
-    public static ResourceLocation getType(FriendlyByteBuf buf) {
+    public static Identifier getType(FriendlyByteBuf buf) {
         int fixed = buf.readUnsignedByte() & 0xff;
         if (fixed >>> 7 == 0) {
-            return buf.readResourceLocation();
+            return buf.readIdentifier();
         } else {
             if (fixed >>> 6 == 0) {
-                return NamespaceIndexManager.getResourceLocation(buf.readUnsignedMedium(), false);
+                return NamespaceIndexManager.getIdentifier(buf.readUnsignedMedium(), false);
             } else {
-                return NamespaceIndexManager.getResourceLocation(buf.readUnsignedShort(), true);
+                return NamespaceIndexManager.getIdentifier(buf.readUnsignedShort(), true);
             }
         }
     }
