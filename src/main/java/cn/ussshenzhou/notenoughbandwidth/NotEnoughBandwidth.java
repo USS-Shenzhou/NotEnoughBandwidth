@@ -1,6 +1,5 @@
 package cn.ussshenzhou.notenoughbandwidth;
 
-import cn.ussshenzhou.NotEnoughBandwidthConfig;
 import cn.ussshenzhou.notenoughbandwidth.config.ConfigHelper;
 import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;

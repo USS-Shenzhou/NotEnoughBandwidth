@@ -1,4 +1,4 @@
-package cn.ussshenzhou;
+package cn.ussshenzhou.notenoughbandwidth;
 
 import cn.ussshenzhou.notenoughbandwidth.config.ConfigHelper;
 import cn.ussshenzhou.notenoughbandwidth.config.TConfig;

@@ -1,6 +1,6 @@
 package cn.ussshenzhou.notenoughbandwidth.mixin;
 
-import cn.ussshenzhou.NotEnoughBandwidthConfig;
+import cn.ussshenzhou.notenoughbandwidth.NotEnoughBandwidthConfig;
 import cn.ussshenzhou.notenoughbandwidth.indextype.CustomPacketPrefixHelper;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.network.FriendlyByteBuf;

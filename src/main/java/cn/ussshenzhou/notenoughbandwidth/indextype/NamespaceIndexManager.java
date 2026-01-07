@@ -30,6 +30,7 @@ public class NamespaceIndexManager {
 
     static {
         try {
+            //TODO add mc
             var lookup = MethodHandles.lookup();
             var privateLookup = MethodHandles.privateLookupIn(NetworkRegistry.class, lookup);
             PAYLOAD_REGISTRATIONS = privateLookup.findStaticVarHandle(NetworkRegistry.class, "PAYLOAD_REGISTRATIONS", Map.class);

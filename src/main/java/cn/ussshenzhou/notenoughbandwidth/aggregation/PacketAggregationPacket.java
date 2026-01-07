@@ -1,6 +1,6 @@
 package cn.ussshenzhou.notenoughbandwidth.aggregation;
 
-import cn.ussshenzhou.NotEnoughBandwidthConfig;
+import cn.ussshenzhou.notenoughbandwidth.NotEnoughBandwidthConfig;
 import cn.ussshenzhou.notenoughbandwidth.ModConstants;
 import cn.ussshenzhou.notenoughbandwidth.config.ConfigHelper;
 import cn.ussshenzhou.notenoughbandwidth.indextype.NamespaceIndexManager;
@@ -62,6 +62,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
      * </pre>
      */
     public void encode(FriendlyByteBuf buffer) {
+        //TODO order id
         FriendlyByteBuf rawBuf = new FriendlyByteBuf(ByteBufAllocator.DEFAULT.buffer());
         packets.forEach((tag, packets) -> {
             encodePackets(rawBuf, tag, packets);
@@ -112,6 +113,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void encodePacket(FriendlyByteBuf raw, Packet<?> packet) {
         var b = Unpooled.buffer();
+        //TODO this will encode id
         protocolInfo.codec().encode(b, (Packet) packet);
         // s
         raw.writeVarInt(b.readableBytes());
