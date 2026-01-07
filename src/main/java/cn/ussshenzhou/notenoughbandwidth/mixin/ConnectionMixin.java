@@ -7,7 +7,6 @@ import io.netty.channel.ChannelFutureListener;
 import net.minecraft.network.Connection;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.network.PacketListener;
-import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.protocol.BundlePacket;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
@@ -35,25 +34,29 @@ public abstract class ConnectionMixin {
 
     @Inject(method = "send(Lnet/minecraft/network/protocol/Packet;Lio/netty/channel/ChannelFutureListener;Z)V", at = @At("HEAD"), cancellable = true)
     private void nebwPacketAggregate(Packet<?> packet, @Nullable ChannelFutureListener listener, boolean flush, CallbackInfo ci) {
+        //only work on play
         if (this.packetListener != null && this.packetListener.protocol() != ConnectionProtocol.PLAY) {
             return;
         }
+        //velocity compatability
         if (NotEnoughBandwidthConfig.skipType(packet.type().id().toString())) {
             return;
         }
+        //de-bundle
         if (packet instanceof BundlePacket<?> bundlePacket) {
-            //de-bundle
             bundlePacket.subPackets().forEach(p -> this.send(p, listener, flush));
             ci.cancel();
             return;
         }
+        //avoid infinite loop
         if (packet instanceof ServerboundCustomPayloadPacket(CustomPacketPayload payload) && payload instanceof PacketAggregationPacket) {
             return;
         }
         if (packet instanceof ClientboundCustomPayloadPacket(CustomPacketPayload payload) && payload instanceof PacketAggregationPacket) {
             return;
         }
-        if (!AggregationManager.aboutToSend(packet, (Connection) (Object) this)) {
+        //take over
+        if (AggregationManager.takeOver(packet, (Connection) (Object) this)) {
             ci.cancel();
             return;
         }

@@ -13,6 +13,7 @@ import net.minecraft.resources.Identifier;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.LongAdder;
 
 /**
  * @author USS_Shenzhou
@@ -23,9 +24,10 @@ public class AggregationManager {
         add(Identifier.withDefaultNamespace("level_chunk_with_light"));
         add(Identifier.withDefaultNamespace("custom_payload"));
     }};
-    private static final WeakHashMap<Connection, HashMap<Identifier, ArrayList<Packet<?>>>> PACKET_BUFFER = new WeakHashMap<>();
+    private static final WeakHashMap<Connection, HashMap<Identifier, ArrayList<AggregatedEncodePacket>>> PACKET_BUFFER = new WeakHashMap<>();
     private static final ScheduledExecutorService TIMER = Executors.newSingleThreadScheduledExecutor();
     private static final ArrayList<ScheduledFuture<?>> TASKS = new ArrayList<>();
+    private static final LongAdder TOTAL_PACKETS = new LongAdder();
 
     public synchronized static void init() {
         WHITE_LIST.clear();
@@ -48,16 +50,17 @@ public class AggregationManager {
         return false;
     }
 
-    public synchronized static boolean aboutToSend(Packet<?> packet, Connection connection) {
-        var type = packet.type().id();
+    public synchronized static boolean takeOver(Packet<?> packet, Connection connection) {
+        var type = AggregatedEncodePacket.getTrueType(packet);
         FREQUENCY_COUNTER.increment(type);
         if (isAggregating(type)) {
-            PACKET_BUFFER.computeIfAbsent(connection, c -> new HashMap<>())
-                    .computeIfAbsent(type, t -> new ArrayList<>())
-                    .add(packet);
-            return false;
+            PACKET_BUFFER.computeIfAbsent(connection, _ -> new HashMap<>())
+                    .computeIfAbsent(type, _ -> new ArrayList<>())
+                    .add(new AggregatedEncodePacket(packet, TOTAL_PACKETS.longValue()));
+            TOTAL_PACKETS.increment();
+            return true;
         }
-        return true;
+        return false;
     }
 
     public synchronized static void flush() {
@@ -71,9 +74,10 @@ public class AggregationManager {
                 return;
             }
             var sendPackets = new HashMap<>(packetsMap);
-            connection.send(connection.getSending() == PacketFlow.CLIENTBOUND
-                    ? new ClientboundCustomPayloadPacket(new cn.ussshenzhou.notenoughbandwidth.aggregation.PacketAggregationPacket(sendPackets, encoder.getProtocolInfo()))
-                    : new ServerboundCustomPayloadPacket(new cn.ussshenzhou.notenoughbandwidth.aggregation.PacketAggregationPacket(sendPackets, encoder.getProtocolInfo()))
+            var flow = connection.getSending();
+            connection.send(flow == PacketFlow.CLIENTBOUND
+                    ? new ClientboundCustomPayloadPacket(new PacketAggregationPacket(sendPackets, encoder.getProtocolInfo(), flow))
+                    : new ServerboundCustomPayloadPacket(new PacketAggregationPacket(sendPackets, encoder.getProtocolInfo(), flow))
             );
             packetsMap.clear();
         });

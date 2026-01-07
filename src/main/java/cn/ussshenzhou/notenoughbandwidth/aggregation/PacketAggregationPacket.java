@@ -9,9 +9,11 @@ import com.mojang.logging.LogUtils;
 import com.mojang.logging.annotations.MethodsReturnNonnullByDefault;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
+import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.ProtocolInfo;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.common.extensions.ICommonPacketListener;
@@ -25,6 +27,7 @@ import java.util.Map;
 /**
  * @author USS_Shenzhou
  */
+@SuppressWarnings("MapOrSetKeyShouldOverrideHashCodeEquals")
 @MethodsReturnNonnullByDefault
 public class PacketAggregationPacket implements CustomPacketPayload {
     public static final Type<PacketAggregationPacket> TYPE = new Type<>(Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "packet_aggregation_packet"));
@@ -34,37 +37,41 @@ public class PacketAggregationPacket implements CustomPacketPayload {
         return TYPE;
     }
 
-    private final Map<Identifier, ArrayList<Packet<?>>> packets;
-    private final FriendlyByteBuf buf;
-    // only used for encode
-    private ProtocolInfo<?> protocolInfo;
+    private final FriendlyByteBuf uncompressed;
+    //----------------------------------------encode----------------------------------------
+    private final Map<Identifier, ArrayList<AggregatedEncodePacket>> packetsToEncode;
+    private final ProtocolInfo<?> protocolInfo;
+    private long minOrder;
+    private PacketFlow packetFlow;
 
-    public PacketAggregationPacket(Map<Identifier, ArrayList<Packet<?>>> packets, ProtocolInfo<?> protocolInfo) {
-        this.packets = packets;
-        this.buf = new FriendlyByteBuf(Unpooled.buffer());
+    public PacketAggregationPacket(Map<Identifier, ArrayList<AggregatedEncodePacket>> packetsToEncode, ProtocolInfo<?> protocolInfo, PacketFlow packetFlow) {
+        this.packetsToEncode = packetsToEncode;
+        this.uncompressed = new FriendlyByteBuf(Unpooled.buffer());
         this.protocolInfo = protocolInfo;
+        this.packetFlow = packetFlow;
     }
 
     /**
      * <pre>
-     * ┌---┬---┬---┬---┬----┬----┬----┬----┬-...-┬---┬---┬---┬----┬----┬----┬----┐
-     * │ S │ b │ t │ n │ s0 │ d0 │ s1 │ d1 │ ... │ b │ t │ n │ s0 │ d0 │ s1 │ d1 │
-     * └---┴---┴---┴---┴----┴----┴----┴----┴-...-┴---┴---┴---┴----┴----┴----┴----┘
-     *     └--------all packets of type A--------┘└-----all packets of type B----┘
-     *     └------------------------------compressed-----------------------------┘
+     * ┌---┬---┬---┬---┬----┬----┬----┬-...-┬---┬---┬---┬----┬----┬----┬-...-┐
+     * │ S │ b │ t │ n │ o0 │ s0 │ d0 │ ... │ b │ t │ n │ o0 │ s0 │ d0 │ ... │
+     * └---┴---┴---┴---┴----┴----┴----┴-...-┴---┴---┴---┴----┴----┴----┴-...-┘
+     *     └-----all packets of type A-----┘└------all packets of type B-----┘
+     *     └---------------------------compressed----------------------------┘
      *
      * S = varint, size of compressed buf
      * b = bool, whether using indexed type
      * t = medium or ResLoc, type
      * n = varint, subpacket amount of this type
+     * o = varint, order of this subpacket
      * s = varint, size of this subpacket
      * d = bytes, data of this subpacket
      * </pre>
      */
     public void encode(FriendlyByteBuf buffer) {
-        //TODO order id
+        minOrder = getMinOrder();
         FriendlyByteBuf rawBuf = new FriendlyByteBuf(ByteBufAllocator.DEFAULT.buffer());
-        packets.forEach((tag, packets) -> {
+        packetsToEncode.forEach((tag, packets) -> {
             encodePackets(rawBuf, tag, packets);
         });
         var compressedBuf = new FriendlyByteBuf(ByteBufHelper.compress(rawBuf));
@@ -75,6 +82,14 @@ public class PacketAggregationPacket implements CustomPacketPayload {
 
         rawBuf.release();
         compressedBuf.release();
+    }
+
+    private long getMinOrder() {
+        long min = Long.MAX_VALUE;
+        for (var list : packetsToEncode.values()) {
+            min = Math.min(min, list.getFirst().getOrder());
+        }
+        return min;
     }
 
     private static void logCompressRatio(FriendlyByteBuf rawBuf, FriendlyByteBuf compressedBuf) {
@@ -93,7 +108,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
         }
     }
 
-    private void encodePackets(FriendlyByteBuf raw, Identifier type, Collection<Packet<?>> packets) {
+    private void encodePackets(FriendlyByteBuf raw, Identifier type, Collection<AggregatedEncodePacket> packets) {
         int nebIndex = NamespaceIndexManager.getNebIndexNotTight(type);
         // b, t
         if (nebIndex != 0) {
@@ -110,11 +125,11 @@ public class PacketAggregationPacket implements CustomPacketPayload {
         }
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private void encodePacket(FriendlyByteBuf raw, Packet<?> packet) {
-        var b = Unpooled.buffer();
-        //TODO this will encode id
-        protocolInfo.codec().encode(b, (Packet) packet);
+    private void encodePacket(FriendlyByteBuf raw, AggregatedEncodePacket packet) {
+        var b = new FriendlyByteBuf(ByteBufAllocator.DEFAULT.buffer());
+        packet.encode(b, protocolInfo, packetFlow);
+        // o
+        raw.writeVarInt((int) (packet.getOrder() - minOrder));
         // s
         raw.writeVarInt(b.readableBytes());
         // d
@@ -122,24 +137,28 @@ public class PacketAggregationPacket implements CustomPacketPayload {
         b.release();
     }
 
+    //----------------------------------------decode----------------------------------------
     public PacketAggregationPacket(FriendlyByteBuf buffer) {
         this.protocolInfo = null;
-        this.packets = new HashMap<>();
+        this.packetsToEncode = null;
         // S
         int size = buffer.readVarInt();
-        this.buf = new FriendlyByteBuf(ByteBufHelper.decompress(buffer.retainedDuplicate(), size));
+        this.uncompressed = new FriendlyByteBuf(ByteBufHelper.decompress(buffer.retainedDuplicate(), size));
         buffer.readerIndex(buffer.writerIndex());
     }
 
+    //----------------------------------------handle----------------------------------------
     public void handler(IPayloadContext context) {
-        this.protocolInfo = context.connection().getInboundProtocol();
-        while (this.buf.readableBytes() > 0) {
-            decodePackets(this.buf, context.listener());
+        var protocolInfo = context.connection().getInboundProtocol();
+        var packetsToHandle = new Int2ObjectRBTreeMap<AggregatedDecodePacket>();
+        while (this.uncompressed.readableBytes() > 0) {
+            deAggregatePackets(this.uncompressed, packetsToHandle);
         }
-        this.buf.release();
+        this.uncompressed.release();
+        this.handlePackets(packetsToHandle, protocolInfo, context);
     }
 
-    private void decodePackets(FriendlyByteBuf buf, ICommonPacketListener listener) {
+    private void deAggregatePackets(FriendlyByteBuf buf, Int2ObjectRBTreeMap<AggregatedDecodePacket> packetsToHandle) {
         // b, t
         var type = buf.readBoolean()
                 ? NamespaceIndexManager.getIdentifier(buf.readUnsignedMedium() & 0x00ffffff, false)
@@ -147,18 +166,20 @@ public class PacketAggregationPacket implements CustomPacketPayload {
         // n
         var amount = buf.readVarInt();
         for (var i = 0; i < amount; i++) {
-            decodePacket(buf, listener);
+            // o
+            var order = buf.readVarInt();
+            // s
+            var size = buf.readVarInt();
+            // d
+            var data = new FriendlyByteBuf(buf.readRetainedSlice(size));
+            packetsToHandle.put(order, new AggregatedDecodePacket(type, data));
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private void decodePacket(FriendlyByteBuf buf, ICommonPacketListener listener) {
-        // s
-        var size = buf.readVarInt();
-        // d
-        var data = buf.readRetainedSlice(size);
-        var packet = (Packet<ICommonPacketListener>) protocolInfo.codec().decode(data);
-        packet.handle(listener);
-        data.release();
+    private void handlePackets(Int2ObjectRBTreeMap<AggregatedDecodePacket> packetsToHandle, ProtocolInfo<?> protocolInfo, IPayloadContext context) {
+        packetsToHandle.values().forEach(packet -> {
+            packet.handle(protocolInfo, context);
+            packet.getData().release();
+        });
     }
 }
