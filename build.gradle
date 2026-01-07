@@ -117,7 +117,7 @@ dependencies {
     jarJar(implementation("com.github.luben:zstd-jni")) {
         version {
             strictly '[1.5, 1.6)'
-            prefer '1.5.6-9'
+            prefer '1.5.7-6'
         }
     }
 
