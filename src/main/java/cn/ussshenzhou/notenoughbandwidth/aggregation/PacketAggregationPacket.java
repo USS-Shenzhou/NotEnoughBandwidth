@@ -94,13 +94,13 @@ public class PacketAggregationPacket implements CustomPacketPayload {
 
     private static void logCompressRatio(FriendlyByteBuf rawBuf, FriendlyByteBuf compressedBuf) {
         if (ConfigHelper.getConfigRead(NotEnoughBandwidthConfig.class).debugLog) {
-            LogUtils.getLogger().debug("Packet aggregation compressed: {} bytes-> {} bytes ( {} %).",
+            LogUtils.getLogger().debug("Packet aggregated and compressed: {} bytes-> {} bytes ( {} %).",
                     rawBuf.readableBytes(),
                     compressedBuf.readableBytes(),
                     String.format("%.2f", 100f * compressedBuf.readableBytes() / rawBuf.readableBytes())
             );
         } else {
-            LogUtils.getLogger().trace("Packet aggregation compressed: {} bytes-> {} bytes ( {} %).",
+            LogUtils.getLogger().trace("Packet aggregated and compressed: {} bytes-> {} bytes ( {} %).",
                     rawBuf.readableBytes(),
                     compressedBuf.readableBytes(),
                     String.format("%.2f", 100f * compressedBuf.readableBytes() / rawBuf.readableBytes())

@@ -12,11 +12,11 @@ public class NotEnoughBandwidthConfig implements TConfig {
 
     public boolean velocityCompat = false;
     public HashSet<String> velocityBlackList = new HashSet<>() {{
-        //add("minecraft:brand");
-        //add("minecraft:register");
-        //add("minecraft:unregister");
-        //add("velocity:player_info");
-        //add("bungeecord:main");
+        add("minecraft:brand");
+        add("minecraft:register");
+        add("minecraft:unregister");
+        add("velocity:player_info");
+        add("bungeecord:main");
     }};
     public boolean debugLog = false;
 

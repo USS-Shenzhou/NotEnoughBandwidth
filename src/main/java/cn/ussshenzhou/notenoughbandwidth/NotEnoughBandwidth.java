@@ -16,9 +16,6 @@ public class NotEnoughBandwidth {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public NotEnoughBandwidth(IEventBus modEventBus, ModContainer modContainer) {
-        if (ModList.get().isLoaded("neoforwarding")){
-            throw new RuntimeException("Not Enough Bandwidth is not compatible with NeoForwarding.");
-        }
         ConfigHelper.loadConfig(new NotEnoughBandwidthConfig());
     }
 
