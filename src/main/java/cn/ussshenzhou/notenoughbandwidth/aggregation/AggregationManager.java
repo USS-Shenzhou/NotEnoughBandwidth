@@ -70,10 +70,9 @@ public class AggregationManager {
                 return;
             }
             var sendPackets = new ArrayList<>(packets);
-            var flow = connection.getSending();
-            connection.send(flow == PacketFlow.CLIENTBOUND
-                    ? new ClientboundCustomPayloadPacket(new PacketAggregationPacket(sendPackets, encoder.getProtocolInfo(), flow))
-                    : new ServerboundCustomPayloadPacket(new PacketAggregationPacket(sendPackets, encoder.getProtocolInfo(), flow))
+            connection.send(connection.getSending() == PacketFlow.CLIENTBOUND
+                    ? new ClientboundCustomPayloadPacket(new PacketAggregationPacket(sendPackets, encoder.getProtocolInfo(), connection))
+                    : new ServerboundCustomPayloadPacket(new PacketAggregationPacket(sendPackets, encoder.getProtocolInfo(), connection))
             );
             packets.clear();
         });

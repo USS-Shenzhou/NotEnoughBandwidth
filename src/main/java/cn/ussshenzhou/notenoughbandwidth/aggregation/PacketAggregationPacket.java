@@ -2,28 +2,22 @@ package cn.ussshenzhou.notenoughbandwidth.aggregation;
 
 import cn.ussshenzhou.notenoughbandwidth.NotEnoughBandwidthConfig;
 import cn.ussshenzhou.notenoughbandwidth.ModConstants;
+import cn.ussshenzhou.notenoughbandwidth.Statistic;
 import cn.ussshenzhou.notenoughbandwidth.config.ConfigHelper;
 import cn.ussshenzhou.notenoughbandwidth.indextype.CustomPacketPrefixHelper;
-import cn.ussshenzhou.notenoughbandwidth.indextype.NamespaceIndexManager;
-import cn.ussshenzhou.notenoughbandwidth.util.ByteBufHelper;
+import cn.ussshenzhou.notenoughbandwidth.zstd.ZstdHelper;
 import com.mojang.logging.LogUtils;
 import com.mojang.logging.annotations.MethodsReturnNonnullByDefault;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
-import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
+import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.ProtocolInfo;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
-import net.neoforged.neoforge.common.extensions.ICommonPacketListener;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author USS_Shenzhou
@@ -37,17 +31,17 @@ public class PacketAggregationPacket implements CustomPacketPayload {
         return TYPE;
     }
 
-    private final FriendlyByteBuf uncompressed;
+    private final FriendlyByteBuf data;
     //----------------------------------------encode----------------------------------------
     private final ArrayList<AggregatedEncodePacket> packetsToEncode;
     private final ProtocolInfo<?> protocolInfo;
-    private PacketFlow packetFlow;
+    private Connection connection;
 
-    public PacketAggregationPacket(ArrayList<AggregatedEncodePacket> packetsToEncode, ProtocolInfo<?> protocolInfo, PacketFlow packetFlow) {
+    public PacketAggregationPacket(ArrayList<AggregatedEncodePacket> packetsToEncode, ProtocolInfo<?> protocolInfo, Connection connection) {
         this.packetsToEncode = packetsToEncode;
-        this.uncompressed = new FriendlyByteBuf(Unpooled.buffer());
+        this.data = new FriendlyByteBuf(Unpooled.buffer());
         this.protocolInfo = protocolInfo;
-        this.packetFlow = packetFlow;
+        this.connection = connection;
     }
 
     /**
@@ -69,7 +63,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
         packetsToEncode.forEach(p -> {
             encodePackets(rawBuf, p);
         });
-        var compressedBuf = new FriendlyByteBuf(ByteBufHelper.compress(rawBuf));
+        var compressedBuf = new FriendlyByteBuf(ZstdHelper.compress(connection, rawBuf));
         logCompressRatio(rawBuf, compressedBuf);
         // S
         buffer.writeVarInt(rawBuf.readableBytes());
@@ -79,17 +73,28 @@ public class PacketAggregationPacket implements CustomPacketPayload {
     }
 
     private static void logCompressRatio(FriendlyByteBuf rawBuf, FriendlyByteBuf compressedBuf) {
+        int rawSize = rawBuf.readableBytes();
+        int compressedSize = compressedBuf.readableBytes();
+
+        long a = Statistic.OUTBOUND_RAW.addAndGet(rawSize);
+        long b = Statistic.OUTBOUND_COMPRESSED.addAndGet(compressedSize);
+        LogUtils.getLogger().warn("Packet aggregated and compressed: {} bytes-> {} bytes ( {} %).",
+                a,
+                b,
+                String.format("%.2f", 100f * b / a)
+        );
+
         if (ConfigHelper.getConfigRead(NotEnoughBandwidthConfig.class).debugLog) {
             LogUtils.getLogger().debug("Packet aggregated and compressed: {} bytes-> {} bytes ( {} %).",
-                    rawBuf.readableBytes(),
-                    compressedBuf.readableBytes(),
-                    String.format("%.2f", 100f * compressedBuf.readableBytes() / rawBuf.readableBytes())
+                    rawSize,
+                    compressedSize,
+                    String.format("%.2f", 100f * compressedSize / rawSize)
             );
         } else {
             LogUtils.getLogger().trace("Packet aggregated and compressed: {} bytes-> {} bytes ( {} %).",
-                    rawBuf.readableBytes(),
-                    compressedBuf.readableBytes(),
-                    String.format("%.2f", 100f * compressedBuf.readableBytes() / rawBuf.readableBytes())
+                    rawSize,
+                    compressedSize,
+                    String.format("%.2f", 100f * compressedSize / rawSize)
             );
         }
     }
@@ -100,7 +105,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
         CustomPacketPrefixHelper.get().index(type).save(raw);
         // s
         var d = new FriendlyByteBuf(ByteBufAllocator.DEFAULT.buffer());
-        packet.encode(d, protocolInfo, packetFlow);
+        packet.encode(d, protocolInfo, connection.getSending());
         raw.writeVarInt(d.readableBytes());
         // d
         raw.writeBytes(d);
@@ -111,20 +116,23 @@ public class PacketAggregationPacket implements CustomPacketPayload {
     public PacketAggregationPacket(FriendlyByteBuf buffer) {
         this.protocolInfo = null;
         this.packetsToEncode = null;
-        // S
-        int size = buffer.readVarInt();
-        this.uncompressed = new FriendlyByteBuf(ByteBufHelper.decompress(buffer.retainedDuplicate(), size));
+        this.data = new FriendlyByteBuf(buffer.retainedDuplicate());
         buffer.readerIndex(buffer.writerIndex());
     }
 
     //----------------------------------------handle----------------------------------------
     public void handler(IPayloadContext context) {
+        this.connection = context.connection();
+        // S
+        int size = data.readVarInt();
+        var decompressed = new FriendlyByteBuf(ZstdHelper.decompress(connection, data.retainedDuplicate(), size));
+        data.release();
         var protocolInfo = context.connection().getInboundProtocol();
         var packetsToHandle = new ArrayList<AggregatedDecodePacket>();
-        while (this.uncompressed.readableBytes() > 0) {
-            deAggregatePackets(this.uncompressed, packetsToHandle);
+        while (decompressed.readableBytes() > 0) {
+            deAggregatePackets(decompressed, packetsToHandle);
         }
-        this.uncompressed.release();
+        decompressed.release();
         this.handlePackets(packetsToHandle, protocolInfo, context);
     }
 
