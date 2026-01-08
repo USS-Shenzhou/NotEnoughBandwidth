@@ -20,9 +20,12 @@ public class NotEnoughBandwidthConfig implements TConfig {
     }};
     public boolean debugLog = false;
 
+    private static NotEnoughBandwidthConfig get() {
+        return ConfigHelper.getConfigRead(NotEnoughBandwidthConfig.class);
+    }
 
     public static boolean skipType(String type) {
-        var cfg = ConfigHelper.getConfigRead(NotEnoughBandwidthConfig.class);
+        var cfg = get();
         return cfg.velocityCompat && cfg.velocityBlackList.contains(type);
     }
 }

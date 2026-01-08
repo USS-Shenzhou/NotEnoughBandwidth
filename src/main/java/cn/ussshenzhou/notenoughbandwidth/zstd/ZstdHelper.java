@@ -1,14 +1,11 @@
 package cn.ussshenzhou.notenoughbandwidth.zstd;
 
-import com.github.luben.zstd.Zstd;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.Connection;
-import org.jspecify.annotations.NonNull;
 
 import java.util.concurrent.ExecutionException;
 
@@ -26,24 +23,8 @@ public class ZstdHelper {
             })
             .build();
 
-    public static ByteBuf compress(ByteBuf raw) {
-        return Unpooled.wrappedBuffer(Zstd.compress(raw.nioBuffer(), Zstd.defaultCompressionLevel()));
-    }
-
-    public static ByteBuf decompress(ByteBuf compressed, int originalSize) {
-        if (compressed.isDirect()) {
-            return Unpooled.wrappedBuffer(Zstd.decompress(compressed.nioBuffer(), originalSize));
-        } else {
-            var directBuf = Unpooled.directBuffer(compressed.readableBytes());
-            compressed.getBytes(compressed.readerIndex(), directBuf);
-            var decompressed = Unpooled.wrappedBuffer(Zstd.decompress(directBuf.nioBuffer(), originalSize));
-            directBuf.release();
-            return decompressed;
-        }
-    }
-
     public static ByteBuf compress(Connection connection, ByteBuf raw) {
-        return Unpooled.wrappedBuffer(get(connection).compress(raw.nioBuffer()));
+        return Unpooled.wrappedBuffer(get(connection).compress(raw.nioBuffer(), connection.getSending()));
     }
 
     public static ByteBuf decompress(Connection connection, ByteBuf compressed, int originalSize) {

@@ -15,6 +15,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.ProtocolInfo;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
+import net.neoforged.neoforge.network.filters.GenericPacketSplitter;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
 
     private final FriendlyByteBuf data;
     //----------------------------------------encode----------------------------------------
+    private static final StackWalker WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
     private final ArrayList<AggregatedEncodePacket> packetsToEncode;
     private final ProtocolInfo<?> protocolInfo;
     private Connection connection;
@@ -58,7 +60,13 @@ public class PacketAggregationPacket implements CustomPacketPayload {
      * d = bytes, data of this subpacket
      * </pre>
      */
+    @SuppressWarnings("UnstableApiUsage")
     public void encode(FriendlyByteBuf buffer) {
+        //skip GenericPacketSplitter
+        if (WALKER.walk(s -> s.anyMatch(frame -> frame.getDeclaringClass() == GenericPacketSplitter.class))) {
+            return;
+        }
+
         FriendlyByteBuf rawBuf = new FriendlyByteBuf(ByteBufAllocator.DEFAULT.buffer());
         packetsToEncode.forEach(p -> {
             encodePackets(rawBuf, p);
@@ -78,20 +86,20 @@ public class PacketAggregationPacket implements CustomPacketPayload {
 
         long a = Statistic.OUTBOUND_RAW.addAndGet(rawSize);
         long b = Statistic.OUTBOUND_COMPRESSED.addAndGet(compressedSize);
-        LogUtils.getLogger().warn("Packet aggregated and compressed: {} bytes-> {} bytes ( {} %).",
+        LogUtils.getLogger().warn("Packet aggregated and compressed: {} bytes -> {} bytes ( {} %).",
                 a,
                 b,
                 String.format("%.2f", 100f * b / a)
         );
 
         if (ConfigHelper.getConfigRead(NotEnoughBandwidthConfig.class).debugLog) {
-            LogUtils.getLogger().debug("Packet aggregated and compressed: {} bytes-> {} bytes ( {} %).",
+            LogUtils.getLogger().debug("Packet aggregated and compressed: {} bytes -> {} bytes ( {} %).",
                     rawSize,
                     compressedSize,
                     String.format("%.2f", 100f * compressedSize / rawSize)
             );
         } else {
-            LogUtils.getLogger().trace("Packet aggregated and compressed: {} bytes-> {} bytes ( {} %).",
+            LogUtils.getLogger().trace("Packet aggregated and compressed: {} bytes -> {} bytes ( {} %).",
                     rawSize,
                     compressedSize,
                     String.format("%.2f", 100f * compressedSize / rawSize)
