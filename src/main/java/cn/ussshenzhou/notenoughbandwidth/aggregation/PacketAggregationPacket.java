@@ -9,10 +9,10 @@ import cn.ussshenzhou.notenoughbandwidth.zstd.ZstdHelper;
 import com.mojang.logging.LogUtils;
 import com.mojang.logging.annotations.MethodsReturnNonnullByDefault;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.Unpooled;
 import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.ProtocolInfo;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.network.filters.GenericPacketSplitter;
@@ -28,11 +28,11 @@ public class PacketAggregationPacket implements CustomPacketPayload {
     public static final Type<PacketAggregationPacket> TYPE = new Type<>(Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "packet_aggregation_packet"));
 
     @Override
-    public Type<? extends CustomPacketPayload> type() {
+    public Type<PacketAggregationPacket> type() {
         return TYPE;
     }
 
-    private final FriendlyByteBuf data;
+
     //----------------------------------------encode----------------------------------------
     private static final StackWalker WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
     private final ArrayList<AggregatedEncodePacket> packetsToEncode;
@@ -41,7 +41,6 @@ public class PacketAggregationPacket implements CustomPacketPayload {
 
     public PacketAggregationPacket(ArrayList<AggregatedEncodePacket> packetsToEncode, ProtocolInfo<?> protocolInfo, Connection connection) {
         this.packetsToEncode = packetsToEncode;
-        this.data = new FriendlyByteBuf(Unpooled.buffer());
         this.protocolInfo = protocolInfo;
         this.connection = connection;
     }
@@ -61,13 +60,12 @@ public class PacketAggregationPacket implements CustomPacketPayload {
      * </pre>
      */
     @SuppressWarnings("UnstableApiUsage")
-    public void encode(FriendlyByteBuf buffer) {
+    public void encode(RegistryFriendlyByteBuf buffer) {
         //skip GenericPacketSplitter
         if (WALKER.walk(s -> s.anyMatch(frame -> frame.getDeclaringClass() == GenericPacketSplitter.class))) {
             return;
         }
-
-        FriendlyByteBuf rawBuf = new FriendlyByteBuf(ByteBufAllocator.DEFAULT.buffer());
+        var rawBuf = new RegistryFriendlyByteBuf(ByteBufAllocator.DEFAULT.buffer(), buffer.registryAccess(), buffer.getConnectionType());
         packetsToEncode.forEach(p -> {
             encodePackets(rawBuf, p);
         });
@@ -80,17 +78,12 @@ public class PacketAggregationPacket implements CustomPacketPayload {
         compressedBuf.release();
     }
 
-    private static void logCompressRatio(FriendlyByteBuf rawBuf, FriendlyByteBuf compressedBuf) {
+    private static void logCompressRatio(RegistryFriendlyByteBuf rawBuf, FriendlyByteBuf compressedBuf) {
         int rawSize = rawBuf.readableBytes();
         int compressedSize = compressedBuf.readableBytes();
 
-        long a = Statistic.OUTBOUND_RAW.addAndGet(rawSize);
-        long b = Statistic.OUTBOUND_COMPRESSED.addAndGet(compressedSize);
-        LogUtils.getLogger().warn("Packet aggregated and compressed: {} bytes -> {} bytes ( {} %).",
-                a,
-                b,
-                String.format("%.2f", 100f * b / a)
-        );
+        Statistic.OUTBOUND_RAW.addAndGet(rawSize);
+        Statistic.OUTBOUND_COMPRESSED.addAndGet(compressedSize);
 
         if (ConfigHelper.getConfigRead(NotEnoughBandwidthConfig.class).debugLog) {
             LogUtils.getLogger().debug("Packet aggregated and compressed: {} bytes -> {} bytes ( {} %).",
@@ -107,12 +100,12 @@ public class PacketAggregationPacket implements CustomPacketPayload {
         }
     }
 
-    private void encodePackets(FriendlyByteBuf raw, AggregatedEncodePacket packet) {
+    private void encodePackets(RegistryFriendlyByteBuf raw, AggregatedEncodePacket packet) {
         var type = packet.type;
         // p
         CustomPacketPrefixHelper.get().index(type).save(raw);
         // s
-        var d = new FriendlyByteBuf(ByteBufAllocator.DEFAULT.buffer());
+        var d = new RegistryFriendlyByteBuf(ByteBufAllocator.DEFAULT.buffer(), raw.registryAccess(), raw.getConnectionType());
         packet.encode(d, protocolInfo, connection.getSending());
         raw.writeVarInt(d.readableBytes());
         // d
@@ -121,10 +114,12 @@ public class PacketAggregationPacket implements CustomPacketPayload {
     }
 
     //----------------------------------------decode----------------------------------------
-    public PacketAggregationPacket(FriendlyByteBuf buffer) {
+    private RegistryFriendlyByteBuf data;
+
+    public PacketAggregationPacket(RegistryFriendlyByteBuf buffer) {
         this.protocolInfo = null;
         this.packetsToEncode = null;
-        this.data = new FriendlyByteBuf(buffer.retainedDuplicate());
+        this.data = new RegistryFriendlyByteBuf(buffer.retainedDuplicate(), buffer.registryAccess(), buffer.getConnectionType());
         buffer.readerIndex(buffer.writerIndex());
     }
 
@@ -133,7 +128,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
         this.connection = context.connection();
         // S
         int size = data.readVarInt();
-        var decompressed = new FriendlyByteBuf(ZstdHelper.decompress(connection, data.retainedDuplicate(), size));
+        var decompressed = new RegistryFriendlyByteBuf(ZstdHelper.decompress(connection, data.retainedDuplicate(), size), data.registryAccess(), data.getConnectionType());
         data.release();
         var protocolInfo = context.connection().getInboundProtocol();
         var packetsToHandle = new ArrayList<AggregatedDecodePacket>();
@@ -144,13 +139,13 @@ public class PacketAggregationPacket implements CustomPacketPayload {
         this.handlePackets(packetsToHandle, protocolInfo, context);
     }
 
-    private void deAggregatePackets(FriendlyByteBuf buf, ArrayList<AggregatedDecodePacket> packetsToHandle) {
+    private void deAggregatePackets(RegistryFriendlyByteBuf buf, ArrayList<AggregatedDecodePacket> packetsToHandle) {
         // p
         var type = CustomPacketPrefixHelper.getType(buf);
         // s
         var size = buf.readVarInt();
         // d
-        var data = new FriendlyByteBuf(buf.readRetainedSlice(size));
+        var data = new RegistryFriendlyByteBuf(buf.readRetainedSlice(size), this.data.registryAccess(), this.data.getConnectionType());
         packetsToHandle.add(new AggregatedDecodePacket(type, data));
     }
 

@@ -1,6 +1,7 @@
 package cn.ussshenzhou.notenoughbandwidth.mixin;
 
 import cn.ussshenzhou.notenoughbandwidth.NotEnoughBandwidthConfig;
+import cn.ussshenzhou.notenoughbandwidth.aggregation.AggregatedEncodePacket;
 import cn.ussshenzhou.notenoughbandwidth.aggregation.AggregationManager;
 import cn.ussshenzhou.notenoughbandwidth.aggregation.PacketAggregationPacket;
 import io.netty.channel.ChannelFutureListener;
@@ -12,6 +13,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -35,11 +37,11 @@ public abstract class ConnectionMixin {
     @Inject(method = "send(Lnet/minecraft/network/protocol/Packet;Lio/netty/channel/ChannelFutureListener;Z)V", at = @At("HEAD"), cancellable = true)
     private void nebwPacketAggregate(Packet<?> packet, @Nullable ChannelFutureListener listener, boolean flush, CallbackInfo ci) {
         //only work on play
-        if (this.packetListener != null && this.packetListener.protocol() != ConnectionProtocol.PLAY) {
+        if (!(this.packetListener instanceof ClientGamePacketListener) || this.packetListener.protocol() != ConnectionProtocol.PLAY) {
             return;
         }
-        //velocity compatability
-        if (NotEnoughBandwidthConfig.skipType(packet.type().id().toString())) {
+        //compatability
+        if (NotEnoughBandwidthConfig.skipType(AggregatedEncodePacket.getTrueType(packet).toString())) {
             return;
         }
         //de-bundle
@@ -56,9 +58,7 @@ public abstract class ConnectionMixin {
             return;
         }
         //take over
-        if (AggregationManager.takeOver(packet, (Connection) (Object) this)) {
-            ci.cancel();
-            return;
-        }
+        AggregationManager.takeOver(packet, (Connection) (Object) this);
+        ci.cancel();
     }
 }

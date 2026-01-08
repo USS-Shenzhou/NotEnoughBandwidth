@@ -24,7 +24,7 @@ public class ZstdHelper {
             .build();
 
     public static ByteBuf compress(Connection connection, ByteBuf raw) {
-        return Unpooled.wrappedBuffer(get(connection).compress(raw.nioBuffer(), connection.getSending()));
+        return Unpooled.wrappedBuffer(get(connection).compress(raw.nioBuffer()));
     }
 
     public static ByteBuf decompress(Connection connection, ByteBuf compressed, int originalSize) {

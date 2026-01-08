@@ -10,6 +10,10 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.PacketType;
+import net.minecraft.network.protocol.common.ClientCommonPacketListener;
+import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
+import net.minecraft.network.protocol.common.ServerCommonPacketListener;
+import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.common.extensions.ICommonPacketListener;
@@ -55,26 +59,43 @@ public class AggregatedDecodePacket {
         //var packet = (Packet<ICommonPacketListener>) protocolInfo.codec().decode(data);
         //packet.handle(listener);
         //data.release();
+
         IdDispatchCodec<ByteBuf, Packet<?>, PacketType> vanillaCodec = (IdDispatchCodec) protocolInfo.codec();
         updateVanillaIdMap(vanillaCodec);
-        if ("minecraft".equals(type.getNamespace())) {
-            handleVanilla(context, vanillaCodec);
-        } else {
-            handleCustom(context, vanillaCodec);
+        //if ("minecraft".equals(type.getNamespace())) {
+        //    handleVanilla(context, vanillaCodec);
+        //} else {
+        //    handleCustom(context, vanillaCodec);
+        //}
+        if (handleVanilla(context, vanillaCodec)) {
+            return;
         }
+        handleCustom(context, vanillaCodec);
     }
 
-    private void handleVanilla(IPayloadContext context, IdDispatchCodec<ByteBuf, Packet<?>, PacketType> vanillaCodec) {
+    private boolean handleVanilla(IPayloadContext context, IdDispatchCodec<ByteBuf, Packet<?>, PacketType> vanillaCodec) {
         var id = VANILLA_TO_ID.getInt(type);
         if (id == -1) {
-            LogUtils.getLogger().error("Skipped: Failed to handle packet " + type + ", which may not be a vanilla packet but has a minecraft namespace.");
-            return;
+            return false;
         }
         var entry = vanillaCodec.byId.get(id);
         var codec = (StreamCodec<ByteBuf, Packet<?>>) entry.serializer();
         var truePacket = (Packet<ICommonPacketListener>) codec.decode(data);
         context.enqueueWork(() -> truePacket.handle(context.listener()));
+        return true;
     }
+
+    //private void handleVanilla(IPayloadContext context, IdDispatchCodec<ByteBuf, Packet<?>, PacketType> vanillaCodec) {
+    //    var id = VANILLA_TO_ID.getInt(type);
+    //    if (id == -1) {
+    //        LogUtils.getLogger().error("Skipped: Failed to handle packet " + type + ", which may not be a vanilla packet but has a minecraft namespace.");
+    //        return;
+    //    }
+    //    var entry = vanillaCodec.byId.get(id);
+    //    var codec = (StreamCodec<ByteBuf, Packet<?>>) entry.serializer();
+    //    var truePacket = (Packet<ICommonPacketListener>) codec.decode(data);
+    //    context.enqueueWork(() -> truePacket.handle(context.listener()));
+    //}
 
     private void handleCustom(IPayloadContext context, IdDispatchCodec<ByteBuf, Packet<?>, PacketType> vanillaCodec) {
         var codec = (StreamCodec<ByteBuf, CustomPacketPayload>) NetworkRegistry.getCodec(type, ConnectionProtocol.PLAY, context.flow());
@@ -84,9 +105,14 @@ public class AggregatedDecodePacket {
         }
         try {
             var truePacket = codec.decode(data);
-            var handlers = (Map<ConnectionProtocol, Map<Identifier, IPayloadHandler<?>>>) (context.flow() == PacketFlow.CLIENTBOUND ? CLIENTBOUND_HANDLERS.get() : SERVERBOUND_HANDLERS.get());
-            var handler = (IPayloadHandler<CustomPacketPayload>) handlers.get(ConnectionProtocol.PLAY).get(type);
-            handler.handle(truePacket, context);
+            //var handlers = (Map<ConnectionProtocol, Map<Identifier, IPayloadHandler<?>>>) (context.flow() == PacketFlow.CLIENTBOUND ? CLIENTBOUND_HANDLERS.get() : SERVERBOUND_HANDLERS.get());
+            //var handler = (IPayloadHandler<CustomPacketPayload>) handlers.get(ConnectionProtocol.PLAY).get(type);
+            //handler.handle(truePacket, context);
+            if (context.listener() instanceof ServerCommonPacketListener listener) {
+                listener.handleCustomPayload(new ServerboundCustomPayloadPacket(truePacket));
+            } else if (context.listener() instanceof ClientCommonPacketListener listener) {
+                listener.handleCustomPayload(new ClientboundCustomPayloadPacket(truePacket));
+            }
         } catch (Exception e) {
             LogUtils.getLogger().error("Skipped: Failed to handle packet " + type, e);
         }
