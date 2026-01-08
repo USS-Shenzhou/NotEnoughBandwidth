@@ -24,10 +24,9 @@ public class AggregationManager {
         add(Identifier.withDefaultNamespace("level_chunk_with_light"));
         add(Identifier.withDefaultNamespace("custom_payload"));
     }};
-    private static final WeakHashMap<Connection, HashMap<Identifier, ArrayList<AggregatedEncodePacket>>> PACKET_BUFFER = new WeakHashMap<>();
+    private static final WeakHashMap<Connection, ArrayList<AggregatedEncodePacket>> PACKET_BUFFER = new WeakHashMap<>();
     private static final ScheduledExecutorService TIMER = Executors.newSingleThreadScheduledExecutor();
     private static final ArrayList<ScheduledFuture<?>> TASKS = new ArrayList<>();
-    private static final LongAdder TOTAL_PACKETS = new LongAdder();
 
     public synchronized static void init() {
         WHITE_LIST.clear();
@@ -54,32 +53,29 @@ public class AggregationManager {
         var type = AggregatedEncodePacket.getTrueType(packet);
         FREQUENCY_COUNTER.increment(type);
         if (isAggregating(type)) {
-            PACKET_BUFFER.computeIfAbsent(connection, _ -> new HashMap<>())
-                    .computeIfAbsent(type, _ -> new ArrayList<>())
-                    .add(new AggregatedEncodePacket(packet, TOTAL_PACKETS.longValue()));
-            TOTAL_PACKETS.increment();
+            PACKET_BUFFER.computeIfAbsent(connection, _ -> new ArrayList<>()).add(new AggregatedEncodePacket(packet, type));
             return true;
         }
         return false;
     }
 
     public synchronized static void flush() {
-        PACKET_BUFFER.forEach((connection, packetsMap) -> {
+        PACKET_BUFFER.forEach((connection, packets) -> {
             var encoder = DefaultChannelPipelineHelper.getPacketEncoder((DefaultChannelPipeline) connection.channel().pipeline());
             if (encoder == null) {
                 LogUtils.getLogger().error("Failed to get PacketEncoder of connection {} {}.", connection.getDirection(), connection.getRemoteAddress());
                 return;
             }
-            if (packetsMap.isEmpty()) {
+            if (packets.isEmpty()) {
                 return;
             }
-            var sendPackets = new HashMap<>(packetsMap);
+            var sendPackets = new ArrayList<>(packets);
             var flow = connection.getSending();
             connection.send(flow == PacketFlow.CLIENTBOUND
                     ? new ClientboundCustomPayloadPacket(new PacketAggregationPacket(sendPackets, encoder.getProtocolInfo(), flow))
                     : new ServerboundCustomPayloadPacket(new PacketAggregationPacket(sendPackets, encoder.getProtocolInfo(), flow))
             );
-            packetsMap.clear();
+            packets.clear();
         });
         FREQUENCY_COUNTER.advance(AggregationFlushHelper.getFlushCountInSeconds());
     }

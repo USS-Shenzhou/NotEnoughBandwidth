@@ -20,12 +20,12 @@ import net.neoforged.neoforge.network.registration.NetworkRegistry;
  */
 @SuppressWarnings("DataFlowIssue")
 public class AggregatedEncodePacket {
+    public final Identifier type;
     private final boolean isMinecraft;
     private final Packet<?> packet;
     private final CustomPacketPayload payload;
-    private final long order;
 
-    public AggregatedEncodePacket(Packet<?> p, long order) {
+    public AggregatedEncodePacket(Packet<?> p, Identifier type) {
         if (p instanceof ServerboundCustomPayloadPacket(CustomPacketPayload pld)) {
             this.isMinecraft = false;
             this.packet = null;
@@ -39,7 +39,7 @@ public class AggregatedEncodePacket {
             this.packet = p;
             this.payload = null;
         }
-        this.order = order;
+        this.type = type;
     }
 
     public static Identifier getTrueType(Packet<?> packet) {
@@ -51,11 +51,6 @@ public class AggregatedEncodePacket {
             return packet.type().id();
         }
     }
-
-    public long getOrder() {
-        return order;
-    }
-
 
     public void encode(ByteBuf buf, ProtocolInfo<?> protocolInfo, PacketFlow packetFlow) {
         if (isMinecraft) {
