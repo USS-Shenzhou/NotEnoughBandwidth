@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "nebw.refmap.json",
   "mixins": [
+    "ClientNetworkRegistryMixin",
     "ConnectionMixin",
     "CustomPacketPayloadMixin",
     "NetworkRegistryMixin"

@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,9 +25,10 @@ import java.util.Set;
 @Mixin(NetworkRegistry.class)
 public class NetworkRegistryMixin {
 
+    // server init
     @Inject(method = "initializeNeoForgeConnection(Lnet/minecraft/network/protocol/configuration/ServerConfigurationPacketListener;Ljava/util/Map;)V", at = @At("TAIL"))
-    private static void nebwGetAllPacketIdentifier(ServerConfigurationPacketListener listener, Map<ConnectionProtocol, Set<ModdedNetworkQueryComponent>> clientChannels, CallbackInfo ci, @Local NetworkPayloadSetup setup) {
-        NamespaceIndexManager.init(setup);
+    private static void nebwGetAllPacketIdentifier(ServerConfigurationPacketListener listener, Map<ConnectionProtocol, Set<ModdedNetworkQueryComponent>> clientChannels, CallbackInfo ci, @Local(name = "setup") NetworkPayloadSetup setup) {
+        NamespaceIndexManager.init(new ArrayList<>(setup.channels().get(ConnectionProtocol.PLAY).keySet()));
         AggregationManager.init();
     }
 }

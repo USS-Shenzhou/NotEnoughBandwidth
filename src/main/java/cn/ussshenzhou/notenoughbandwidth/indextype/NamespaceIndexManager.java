@@ -224,7 +224,7 @@ public class NamespaceIndexManager {
         add("set_player_inventory");
     }};
 
-    public synchronized static void init(NetworkPayloadSetup setup) {
+    public synchronized static void init(List<Identifier> types) {
         if (FMLEnvironment.getDist() == Dist.DEDICATED_SERVER && initialized) {
             return;
         }
@@ -234,10 +234,9 @@ public class NamespaceIndexManager {
         NAMESPACE_MAP.clear();
         PATH_MAPS.clear();
 
-
         AtomicInteger namespaceIndex = new AtomicInteger();
         indexVanillaPackets(namespaceIndex);
-        indexCustomPayloads(setup, namespaceIndex);
+        indexCustomPayloads(types, namespaceIndex);
 
         initTrace();
         if (NAMESPACES.size() > 4096 || PATHS.stream().anyMatch(l -> l.size() > 4096)) {
@@ -250,8 +249,7 @@ public class NamespaceIndexManager {
         VANILLA_PATHS.forEach(path -> fillSingle(namespaceIndex, Identifier.withDefaultNamespace(path)));
     }
 
-    private static void indexCustomPayloads(NetworkPayloadSetup setup, AtomicInteger namespaceIndex) {
-        List<Identifier> types = new ArrayList<>(setup.channels().get(ConnectionProtocol.PLAY).keySet());
+    private static void indexCustomPayloads(List<Identifier> types, AtomicInteger namespaceIndex) {
         types.sort(Comparator.comparing(Identifier::getNamespace).thenComparing(Identifier::getPath));
         @SuppressWarnings("unchecked")
         var registration = ((Map<ConnectionProtocol, Map<Identifier, PayloadRegistration<?>>>) PAYLOAD_REGISTRATIONS.get()).get(ConnectionProtocol.PLAY);

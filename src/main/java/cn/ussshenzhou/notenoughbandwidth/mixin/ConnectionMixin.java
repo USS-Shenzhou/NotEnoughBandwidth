@@ -3,16 +3,12 @@ package cn.ussshenzhou.notenoughbandwidth.mixin;
 import cn.ussshenzhou.notenoughbandwidth.NotEnoughBandwidthConfig;
 import cn.ussshenzhou.notenoughbandwidth.aggregation.AggregatedEncodePacket;
 import cn.ussshenzhou.notenoughbandwidth.aggregation.AggregationManager;
-import cn.ussshenzhou.notenoughbandwidth.aggregation.PacketAggregationPacket;
 import io.netty.channel.ChannelFutureListener;
 import net.minecraft.network.Connection;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.network.PacketListener;
 import net.minecraft.network.protocol.BundlePacket;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
-import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -40,7 +36,7 @@ public abstract class ConnectionMixin {
         if (!(this.packetListener instanceof ClientGamePacketListener) || this.packetListener.protocol() != ConnectionProtocol.PLAY) {
             return;
         }
-        //compatability
+        //compatability and avoid infinite loop
         if (NotEnoughBandwidthConfig.skipType(AggregatedEncodePacket.getTrueType(packet).toString())) {
             return;
         }
@@ -48,13 +44,6 @@ public abstract class ConnectionMixin {
         if (packet instanceof BundlePacket<?> bundlePacket) {
             bundlePacket.subPackets().forEach(p -> this.send(p, listener, flush));
             ci.cancel();
-            return;
-        }
-        //avoid infinite loop
-        if (packet instanceof ServerboundCustomPayloadPacket(CustomPacketPayload payload) && payload instanceof PacketAggregationPacket) {
-            return;
-        }
-        if (packet instanceof ClientboundCustomPayloadPacket(CustomPacketPayload payload) && payload instanceof PacketAggregationPacket) {
             return;
         }
         //take over

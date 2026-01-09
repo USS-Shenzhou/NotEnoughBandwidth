@@ -1,5 +1,6 @@
 package cn.ussshenzhou.notenoughbandwidth;
 
+import cn.ussshenzhou.notenoughbandwidth.aggregation.PacketAggregationPacket;
 import cn.ussshenzhou.notenoughbandwidth.config.ConfigHelper;
 import cn.ussshenzhou.notenoughbandwidth.config.TConfig;
 import com.google.gson.annotations.Expose;
@@ -24,6 +25,7 @@ public class NotEnoughBandwidthConfig implements TConfig {
     @Expose(serialize = false, deserialize = false)
     public static final HashSet<String> COMMON_BLOCK_LIST = new HashSet<>() {{
         add("minecraft:finish_configuration");
+        add(PacketAggregationPacket.TYPE.id().toString());
     }};
 
     private static NotEnoughBandwidthConfig get() {

@@ -1,7 +1,6 @@
 package cn.ussshenzhou.notenoughbandwidth.aggregation;
 
 import cn.ussshenzhou.notenoughbandwidth.util.DefaultChannelPipelineHelper;
-import cn.ussshenzhou.notenoughbandwidth.util.ResizableCounter;
 import com.mojang.logging.LogUtils;
 import io.netty.channel.DefaultChannelPipeline;
 import net.minecraft.network.Connection;
@@ -9,13 +8,10 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
-import net.minecraft.resources.Identifier;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.fml.util.thread.EffectiveSide;
 
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.LongAdder;
 
 /**
  * @author USS_Shenzhou
@@ -27,7 +23,7 @@ public class AggregationManager {
     private static volatile boolean initialized = false;
 
     public synchronized static void init() {
-        if (FMLEnvironment.getDist() == Dist.DEDICATED_SERVER && initialized) {
+        if (EffectiveSide.get().isServer() && initialized) {
             return;
         }
         initialized = false;
