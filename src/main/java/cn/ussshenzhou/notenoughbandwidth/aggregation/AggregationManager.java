@@ -1,6 +1,7 @@
 package cn.ussshenzhou.notenoughbandwidth.aggregation;
 
 import cn.ussshenzhou.notenoughbandwidth.util.DefaultChannelPipelineHelper;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.mojang.logging.LogUtils;
 import io.netty.channel.DefaultChannelPipeline;
 import net.minecraft.network.Connection;
@@ -9,6 +10,7 @@ import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.neoforged.fml.util.thread.EffectiveSide;
+import net.neoforged.neoforge.client.ClientLifecycleHooks;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -18,12 +20,12 @@ import java.util.concurrent.*;
  */
 public class AggregationManager {
     private static final WeakHashMap<Connection, ArrayList<AggregatedEncodePacket>> PACKET_BUFFER = new WeakHashMap<>();
-    private static final ScheduledExecutorService TIMER = Executors.newSingleThreadScheduledExecutor();
+    private static final ScheduledExecutorService TIMER = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setNameFormat("NEB-Flush-thread").setDaemon(true).build());
     private static final ArrayList<ScheduledFuture<?>> TASKS = new ArrayList<>();
     private static volatile boolean initialized = false;
 
     public synchronized static void init() {
-        if (EffectiveSide.get().isServer() && initialized) {
+        if (initialized) {
             return;
         }
         initialized = false;
@@ -40,21 +42,27 @@ public class AggregationManager {
     }
 
     public synchronized static void flush() {
-        PACKET_BUFFER.forEach((connection, packets) -> {
-            var encoder = DefaultChannelPipelineHelper.getPacketEncoder((DefaultChannelPipeline) connection.channel().pipeline());
-            if (encoder == null) {
-                LogUtils.getLogger().error("Failed to get PacketEncoder of connection {} {}.", connection.getDirection(), connection.getRemoteAddress());
-                return;
-            }
-            if (packets.isEmpty()) {
-                return;
-            }
-            var sendPackets = new ArrayList<>(packets);
-            connection.send(connection.getSending() == PacketFlow.CLIENTBOUND
-                    ? new ClientboundCustomPayloadPacket(new PacketAggregationPacket(sendPackets, encoder.getProtocolInfo(), connection))
-                    : new ServerboundCustomPayloadPacket(new PacketAggregationPacket(sendPackets, encoder.getProtocolInfo(), connection))
-            );
-            packets.clear();
-        });
+        try {
+            PACKET_BUFFER.entrySet().removeIf(e -> !e.getKey().isConnected());
+            PACKET_BUFFER.forEach((connection, packets) -> {
+                var encoder = DefaultChannelPipelineHelper.getPacketEncoder((DefaultChannelPipeline) connection.channel().pipeline());
+                if (encoder == null) {
+                    LogUtils.getLogger().error("Failed to get PacketEncoder of connection {} {}.", connection.getDirection(), connection.getRemoteAddress());
+                    return;
+                }
+                if (packets.isEmpty()) {
+                    return;
+                }
+                var sendPackets = new ArrayList<>(packets);
+                connection.send(connection.getSending() == PacketFlow.CLIENTBOUND
+                        ? new ClientboundCustomPayloadPacket(new PacketAggregationPacket(sendPackets, encoder.getProtocolInfo(), connection))
+                        : new ServerboundCustomPayloadPacket(new PacketAggregationPacket(sendPackets, encoder.getProtocolInfo(), connection))
+                );
+                packets.clear();
+            });
+        } catch (Exception e) {
+            LogUtils.getLogger().error("Skipped: Failed to flush packets.", e);
+        }
+
     }
 }

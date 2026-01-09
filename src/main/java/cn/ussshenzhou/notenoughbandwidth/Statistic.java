@@ -8,5 +8,5 @@ import java.util.concurrent.atomic.AtomicLong;
 public class Statistic {
 
     public static final AtomicLong OUTBOUND_RAW = new AtomicLong();
-    public static final AtomicLong OUTBOUND_COMPRESSED = new AtomicLong();
+    public static final AtomicLong OUTBOUND_BAKED = new AtomicLong();
 }

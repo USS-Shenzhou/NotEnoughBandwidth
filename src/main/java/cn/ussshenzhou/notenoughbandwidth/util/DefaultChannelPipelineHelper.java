@@ -36,15 +36,15 @@ public class DefaultChannelPipelineHelper {
             Object head = HEAD.get(pipeline);
             Object tail = TAIL.get(pipeline);
             var ctx = (ChannelHandlerContext) NEXT.get(head);
-            while (true) {
+            if (ctx == null) {
+                return null;
+            }
+            do {
                 if (ctx.handler() instanceof PacketEncoder<?> encoder) {
                     return encoder;
                 }
                 ctx = (ChannelHandlerContext) NEXT.get(ctx);
-                if (ctx == tail) {
-                    break;
-                }
-            }
+            } while (ctx != tail);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
