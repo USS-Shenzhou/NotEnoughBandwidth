@@ -25,20 +25,20 @@ public class Context implements Closeable {
     }
 
     public ByteBuffer compress(ByteBuffer raw) {
-        //int maxDstSize = (int) Zstd.compressBound(raw.remaining());
-        //var dst = ByteBuffer.allocateDirect(maxDstSize);
-        //compressCtx.compressDirectByteBufferStream(dst, raw, EndDirective.FLUSH);
-        //dst.flip();
-        //return dst;
-        return compressCtx.compress(raw);
+        int maxDstSize = (int) Zstd.compressBound(raw.remaining());
+        var dst = ByteBuffer.allocateDirect(maxDstSize);
+        compressCtx.compressDirectByteBufferStream(dst, raw, EndDirective.FLUSH);
+        dst.flip();
+        return dst;
+        //return compressCtx.compress(raw);
     }
 
     public ByteBuffer decompress(ByteBuffer compressed, int originalSize) {
-        //var dst = ByteBuffer.allocateDirect(originalSize);
-        //decompressCtx.decompressDirectByteBufferStream(dst, compressed);
-        //dst.flip();
-        //return dst;
-        return decompressCtx.decompress(compressed, originalSize);
+        var dst = ByteBuffer.allocateDirect(originalSize);
+        decompressCtx.decompressDirectByteBufferStream(dst, compressed);
+        dst.flip();
+        return dst;
+        //return decompressCtx.decompress(compressed, originalSize);
     }
 
 

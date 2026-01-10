@@ -9,8 +9,6 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
-import net.neoforged.fml.util.thread.EffectiveSide;
-import net.neoforged.neoforge.client.ClientLifecycleHooks;
 
 import java.util.*;
 import java.util.concurrent.*;

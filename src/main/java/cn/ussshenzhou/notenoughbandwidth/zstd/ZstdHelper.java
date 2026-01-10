@@ -40,6 +40,7 @@ public class ZstdHelper {
     }
 
     private static Context get(Connection connection) {
+        ZSTD_CONTEXT_CACHE.asMap().entrySet().removeIf(e -> !e.getKey().isConnected());
         try {
             return ZSTD_CONTEXT_CACHE.get(connection, Context::new);
         } catch (ExecutionException e) {
