@@ -4,6 +4,7 @@ import cn.ussshenzhou.notenoughbandwidth.aggregation.PacketAggregationPacket;
 import cn.ussshenzhou.notenoughbandwidth.config.ConfigHelper;
 import cn.ussshenzhou.notenoughbandwidth.config.TConfig;
 import com.google.gson.annotations.Expose;
+import net.minecraft.util.Mth;
 
 import java.util.HashSet;
 
@@ -21,6 +22,7 @@ public class NotEnoughBandwidthConfig implements TConfig {
         add("bungeecord:main");
     }};
     public boolean debugLog = false;
+    public int contextLevel = 23;
 
     @Expose(serialize = false, deserialize = false)
     public static final HashSet<String> COMMON_BLOCK_LIST = new HashSet<>() {{
@@ -28,12 +30,16 @@ public class NotEnoughBandwidthConfig implements TConfig {
         add(PacketAggregationPacket.TYPE.id().toString());
     }};
 
-    private static NotEnoughBandwidthConfig get() {
+    public static NotEnoughBandwidthConfig get() {
         return ConfigHelper.getConfigRead(NotEnoughBandwidthConfig.class);
     }
 
     public static boolean skipType(String type) {
         var cfg = get();
         return COMMON_BLOCK_LIST.contains(type) || (cfg.compatibleMode && cfg.blackList.contains(type));
+    }
+
+    public int getContextLevel() {
+        return Mth.clamp(contextLevel, 21, 25);
     }
 }
