@@ -91,7 +91,7 @@ The blacklist for compatibility mode. Packets listed here will be skipped by NEB
 
 在进行压缩时的上下文窗口长度。可选范围为21\~25的整数，分别代表2\~32MB。默认为23，即8MB。
 
-上下文窗口长度越长，则压缩效果越好，越节省流量；但也会消耗更多的内存。对于100名玩家的服务器，设置为25会产生约额外3200的内存占用。
+上下文窗口长度越长，则压缩效果越好，越节省流量；但也会消耗更多的内存。对于100名玩家的服务器，设置为25会产生约额外3200MB的内存占用。
 
 The context window size used for compression. Valid values are integers from 21 to 25, representing 2MB to 32MB respectively. The default is 23 (8MB).
 
