@@ -8,7 +8,9 @@
     "ClientNetworkRegistryMixin",
     "ConnectionMixin",
     "CustomPacketPayloadMixin",
-    "NetworkRegistryMixin"
+    "NetworkRegistryMixin",
+    "PacketDecoderMixin",
+    "PacketEncoderMixin"
   ],
   "client": [
   ],

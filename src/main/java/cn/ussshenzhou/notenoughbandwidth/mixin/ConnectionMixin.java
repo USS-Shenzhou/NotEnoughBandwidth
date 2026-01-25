@@ -1,8 +1,8 @@
 package cn.ussshenzhou.notenoughbandwidth.mixin;
 
 import cn.ussshenzhou.notenoughbandwidth.NotEnoughBandwidthConfig;
-import cn.ussshenzhou.notenoughbandwidth.aggregation.AggregatedEncodePacket;
 import cn.ussshenzhou.notenoughbandwidth.aggregation.AggregationManager;
+import cn.ussshenzhou.notenoughbandwidth.util.PacketUtil;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.local.LocalAddress;
 import net.minecraft.network.Connection;
@@ -42,7 +42,7 @@ public abstract class ConnectionMixin {
             return;
         }
         //compatability and avoid infinite loop
-        if (NotEnoughBandwidthConfig.skipType(AggregatedEncodePacket.getTrueType(packet).toString())) {
+        if (NotEnoughBandwidthConfig.skipType(PacketUtil.getTrueType(packet).toString())) {
             //flush to ensure packet order
             AggregationManager.flushConnection((Connection) (Object) this);
             return;

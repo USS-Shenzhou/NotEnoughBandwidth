@@ -42,16 +42,6 @@ public class AggregatedEncodePacket {
         this.type = type;
     }
 
-    public static Identifier getTrueType(Packet<?> packet) {
-        if (packet instanceof ServerboundCustomPayloadPacket(CustomPacketPayload payload)) {
-            return payload.type().id();
-        } else if (packet instanceof ClientboundCustomPayloadPacket(CustomPacketPayload payload)) {
-            return payload.type().id();
-        } else {
-            return packet.type().id();
-        }
-    }
-
     public void encode(ByteBuf buf, ProtocolInfo<?> protocolInfo, PacketFlow packetFlow) {
         if (isMinecraft) {
             encodeVanilla(buf, protocolInfo);

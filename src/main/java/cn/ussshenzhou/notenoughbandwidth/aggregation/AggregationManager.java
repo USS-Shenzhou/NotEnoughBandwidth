@@ -1,6 +1,7 @@
 package cn.ussshenzhou.notenoughbandwidth.aggregation;
 
 import cn.ussshenzhou.notenoughbandwidth.util.DefaultChannelPipelineHelper;
+import cn.ussshenzhou.notenoughbandwidth.util.PacketUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.mojang.logging.LogUtils;
 import io.netty.channel.DefaultChannelPipeline;
@@ -36,7 +37,7 @@ public class AggregationManager {
     }
 
     public synchronized static void takeOver(Packet<?> packet, Connection connection) {
-        var type = AggregatedEncodePacket.getTrueType(packet);
+        var type = PacketUtil.getTrueType(packet);
         PACKET_BUFFER.computeIfAbsent(connection, _ -> new ArrayList<>()).add(new AggregatedEncodePacket(packet, type));
     }
 
@@ -54,7 +55,7 @@ public class AggregationManager {
         TIMER.execute(() -> flushInternal(connection, PACKET_BUFFER.get(connection)));
     }
 
-    private static void flushInternal(Connection connection, @Nullable ArrayList<AggregatedEncodePacket> packets) {
+    private synchronized static void flushInternal(Connection connection, @Nullable ArrayList<AggregatedEncodePacket> packets) {
         if (packets == null || packets.isEmpty()) {
             return;
         }
