@@ -15,11 +15,13 @@ public class NotEnoughBandwidthConfig implements TConfig {
 
     public boolean compatibleMode = false;
     public HashSet<String> blackList = new HashSet<>() {{
-        add("minecraft:brand");
-        add("minecraft:register");
-        add("minecraft:unregister");
-        add("velocity:player_info");
-        add("bungeecord:main");
+        add("minecraft:command_suggestion");
+        add("minecraft:command_suggestions");
+        add("minecraft:commands");
+        add("minecraft:chat_command");
+        add("minecraft:chat_command_signed");
+        add("minecraft:player_info_update");
+        add("minecraft:player_info_remove");
     }};
     public boolean debugLog = false;
     public int contextLevel = 23;
@@ -28,6 +30,7 @@ public class NotEnoughBandwidthConfig implements TConfig {
     public static final HashSet<String> COMMON_BLOCK_LIST = new HashSet<>() {{
         add("minecraft:finish_configuration");
         add(PacketAggregationPacket.TYPE.id().toString());
+        add("minecraft:login");
     }};
 
     public static NotEnoughBandwidthConfig get() {

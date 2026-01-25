@@ -43,6 +43,8 @@ public abstract class ConnectionMixin {
         }
         //compatability and avoid infinite loop
         if (NotEnoughBandwidthConfig.skipType(AggregatedEncodePacket.getTrueType(packet).toString())) {
+            //flush to ensure packet order
+            AggregationManager.flushConnection((Connection) (Object) this);
             return;
         }
         //de-bundle
