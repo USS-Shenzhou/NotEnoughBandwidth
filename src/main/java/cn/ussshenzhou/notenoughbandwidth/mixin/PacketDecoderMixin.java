@@ -25,7 +25,9 @@ public class PacketDecoderMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/util/profiling/jfr/JvmProfiler;onPacketReceived(Lnet/minecraft/network/ConnectionProtocol;Lnet/minecraft/network/protocol/PacketType;Ljava/net/SocketAddress;I)V", shift = At.Shift.BEFORE))
     private void nebRecordIn(ChannelHandlerContext ctx, ByteBuf input, List<Object> out, CallbackInfo ci, @Local int size, @Local Packet<?> packet) {
         SimpleStat.inBaked(size);
-        if (!PacketUtil.getTrueType(packet).equals(PacketAggregationPacket.TYPE.id())) {
+        if (PacketUtil.getTruePacket(packet) instanceof PacketAggregationPacket aggregationPacket) {
+            aggregationPacket.setBakedSize(size);
+        } else {
             SimpleStat.inRaw(size);
         }
     }

@@ -15,6 +15,7 @@ public class StatScreen extends Screen {
     private String actual1 = "";
     private String raw = "Raw Payload";
     private String raw1 = "";
+    private String ratio = "Ratio";
     private int tick = 0;
 
     public StatScreen() {
@@ -24,15 +25,7 @@ public class StatScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
-        if (tick % 10 == 0){
-            raw1 = "↓ Inbound  "
-                    + getReadableSpeed((int) SimpleStat.inboundSpeedRaw.averageIn1s())
-                    + "  Total  "
-                    + getReadableSize(SimpleStat.inboundBytesRaw.get())
-                    + "    ↑ Outbound  "
-                    + getReadableSpeed((int) SimpleStat.outboundSpeedRaw.averageIn1s())
-                    + "  Total  "
-                    + getReadableSize(SimpleStat.outboundBytesRaw.get());
+        if (tick % 10 == 0) {
             actual1 = "↓ Inbound  "
                     + getReadableSpeed((int) SimpleStat.inboundSpeedBaked.averageIn1s())
                     + "  Total  "
@@ -41,6 +34,19 @@ public class StatScreen extends Screen {
                     + getReadableSpeed((int) SimpleStat.outboundSpeedBaked.averageIn1s())
                     + "  Total  "
                     + getReadableSize(SimpleStat.outboundBytesBaked.get());
+            raw1 = "↓ Inbound  "
+                    + getReadableSpeed((int) SimpleStat.inboundSpeedRaw.averageIn1s())
+                    + "  Total  "
+                    + getReadableSize(SimpleStat.inboundBytesRaw.get())
+                    + "    ↑ Outbound  "
+                    + getReadableSpeed((int) SimpleStat.outboundSpeedRaw.averageIn1s())
+                    + "  Total  "
+                    + getReadableSize(SimpleStat.outboundBytesRaw.get());
+            ratio = "Ratio                            "
+                    + String.format("%.2f", 100d * SimpleStat.inboundBytesBaked.get() / SimpleStat.inboundBytesRaw.get())
+                    + "%                                        "
+                    + String.format("%.2f", 100d * SimpleStat.outboundBytesBaked.get() / SimpleStat.outboundBytesRaw.get())
+                    + "%";
         }
         tick++;
     }
@@ -51,14 +57,11 @@ public class StatScreen extends Screen {
         var textRenderer = graphics.textRenderer();
         var pose = graphics.pose();
         textRenderer.accept(10, 10, Component.literal(client));
-
         textRenderer.accept(10, 30, Component.literal(actual));
-
         textRenderer.accept(10, 50, Component.literal(actual1));
-
         textRenderer.accept(10, 70, Component.literal(raw));
-
         textRenderer.accept(10, 90, Component.literal(raw1));
+        textRenderer.accept(10, 110, Component.literal(ratio));
 
     }
 

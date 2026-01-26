@@ -42,33 +42,35 @@ public class AggregationManager {
     }
 
     private synchronized static void flush() {
-        try {
-            PACKET_BUFFER.entrySet().removeIf(e -> !e.getKey().isConnected());
-            PACKET_BUFFER.forEach(AggregationManager::flushInternal);
-        } catch (Exception e) {
-            LogUtils.getLogger().error("Skipped: Failed to flush packets.", e);
-        }
-
+        PACKET_BUFFER.entrySet().removeIf(e -> !e.getKey().isConnected());
+        PACKET_BUFFER.forEach(AggregationManager::flushInternal);
     }
 
     public synchronized static void flushConnection(Connection connection) {
-        TIMER.execute(() -> flushInternal(connection, PACKET_BUFFER.get(connection)));
+        TIMER.execute(() -> {
+            PACKET_BUFFER.entrySet().removeIf(e -> !e.getKey().isConnected());
+            flushInternal(connection, PACKET_BUFFER.get(connection));
+        });
     }
 
     private synchronized static void flushInternal(Connection connection, @Nullable ArrayList<AggregatedEncodePacket> packets) {
-        if (packets == null || packets.isEmpty()) {
-            return;
+        try {
+            if (packets == null || packets.isEmpty()) {
+                return;
+            }
+            var encoder = DefaultChannelPipelineHelper.getPacketEncoder((DefaultChannelPipeline) connection.channel().pipeline());
+            if (encoder == null) {
+                LogUtils.getLogger().error("Failed to get PacketEncoder of connection {} {}.", connection.getDirection(), connection.getRemoteAddress());
+                return;
+            }
+            var sendPackets = new ArrayList<>(packets);
+            connection.send(connection.getSending() == PacketFlow.CLIENTBOUND
+                    ? new ClientboundCustomPayloadPacket(new PacketAggregationPacket(sendPackets, encoder.getProtocolInfo(), connection))
+                    : new ServerboundCustomPayloadPacket(new PacketAggregationPacket(sendPackets, encoder.getProtocolInfo(), connection))
+            );
+            packets.clear();
+        } catch (Exception e) {
+            LogUtils.getLogger().error("Skipped: Failed to flush packets.", e);
         }
-        var encoder = DefaultChannelPipelineHelper.getPacketEncoder((DefaultChannelPipeline) connection.channel().pipeline());
-        if (encoder == null) {
-            LogUtils.getLogger().error("Failed to get PacketEncoder of connection {} {}.", connection.getDirection(), connection.getRemoteAddress());
-            return;
-        }
-        var sendPackets = new ArrayList<>(packets);
-        connection.send(connection.getSending() == PacketFlow.CLIENTBOUND
-                ? new ClientboundCustomPayloadPacket(new PacketAggregationPacket(sendPackets, encoder.getProtocolInfo(), connection))
-                : new ServerboundCustomPayloadPacket(new PacketAggregationPacket(sendPackets, encoder.getProtocolInfo(), connection))
-        );
-        packets.clear();
     }
 }

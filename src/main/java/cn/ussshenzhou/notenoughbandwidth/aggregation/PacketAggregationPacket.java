@@ -32,7 +32,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
         return TYPE;
     }
 
-
+    private int bakedSize;
     //----------------------------------------encode----------------------------------------
     private static final StackWalker WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
     private final ArrayList<AggregatedEncodePacket> packetsToEncode;
@@ -80,8 +80,10 @@ public class PacketAggregationPacket implements CustomPacketPayload {
             logCompressRatio(rawSize, compressedBuf.readableBytes());
             buffer.writeBytes(compressedBuf);
             compressedBuf.release();
+            this.bakedSize = compressedBuf.readableBytes();
         } else {
             buffer.writeBytes(rawBuf);
+            this.bakedSize = rawSize;
         }
         SimpleStat.outRaw(rawSize);
         rawBuf.release();
@@ -126,6 +128,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
     //----------------------------------------handle----------------------------------------
     public void handler(IPayloadContext context) {
         this.connection = context.connection();
+        SimpleStat.inRaw(bakedSize - data.readableBytes());
         // B
         boolean compressed = data.readBoolean();
         RegistryFriendlyByteBuf raw;
@@ -162,5 +165,13 @@ public class PacketAggregationPacket implements CustomPacketPayload {
             packet.handle(protocolInfo, context);
             packet.getData().release();
         });
+    }
+
+    public int getBakedSize() {
+        return bakedSize;
+    }
+
+    public void setBakedSize(int bakedSize) {
+        this.bakedSize = bakedSize;
     }
 }

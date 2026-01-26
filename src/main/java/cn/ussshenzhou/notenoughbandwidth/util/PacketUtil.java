@@ -16,4 +16,14 @@ public class PacketUtil {
             return packet.type().id();
         }
     }
+
+    public static Object getTruePacket(Packet<?> packet) {
+        if (packet instanceof ServerboundCustomPayloadPacket(CustomPacketPayload payload)) {
+            return payload;
+        } else if (packet instanceof ClientboundCustomPayloadPacket(CustomPacketPayload payload)) {
+            return payload;
+        } else {
+            return packet;
+        }
+    }
 }
