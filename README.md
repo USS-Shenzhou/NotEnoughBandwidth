@@ -1,5 +1,7 @@
 # 网络包优化 | Not Enough Bandwidth (NEB)
 
+![icon](src/main/resources/icon-chn_500.png)
+
 ## 主要功能 | Main Features
 
 1. 优化`CustomPacketPayload`编码及对应解码，以紧凑的索引替代包头的`Identifier`(Packet Type)，使模组网络包包头消耗减少为固定3-4字节，而不是网络包类型对应的字符串长度。
