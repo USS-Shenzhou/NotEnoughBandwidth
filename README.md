@@ -4,10 +4,11 @@
 
 ## 主要功能 | Main Features
 
-1. 优化`CustomPacketPayload`编码及对应解码，以紧凑的索引替代包头的`Identifier`(Packet Type)，使模组网络包包头消耗减少为固定3-4字节，而不是网络包类型对应的字符串长度。
+### 紧凑的包头 | Compact Packet Header
 
+优化`CustomPacketPayload`编码及对应解码，以紧凑的索引替代包头的`Identifier`(Packet Type)，使模组网络包包头消耗减少为固定3-4字节，而不是网络包类型对应的字符串长度。
 
-1. Optimize `CustomPacketPayload` encoding and decoding by replacing the packet header `Identifier` (Packet Type) with a compact index. This reduces the mod network packet header overhead to a fixed 3-4 bytes, instead of the length of the string corresponding to the network packet type.
+Optimize `CustomPacketPayload` encoding and decoding by replacing the packet header `Identifier` (Packet Type) with a compact index. This reduces the mod network packet header overhead to a fixed 3-4 bytes, instead of the length of the string corresponding to the network packet type.
 
 索引结构如下：
 
@@ -53,10 +54,11 @@ The index structure is as follows:
 
 It occupies 3 bytes when the network packet namespace and its corresponding path are fewer than 256, and 4 bytes when greater than 256. This supports up to 4096 mods, with 4096 channels per mod.
 
-2. 优化原版经常出现大量小体积网络包的情况，在`Connection`层面拦截发送，每隔20ms组装为一个大网络包，并进行压缩后发送。
+### 聚合与压缩 | Aggregation and Compress
 
+优化原版经常出现大量小体积网络包的情况，在`Connection`层面拦截发送，每隔20ms组装为一个大网络包，并进行压缩后发送。
 
-2. Optimize the situation where vanilla often produces a large number of small network packets. Intercept transmission at the `Connection` level, assemble them into one large network packet every 20ms, and send it after compression.
+Optimize the situation where vanilla often produces a large number of small network packets. Intercept transmission at the `Connection` level, assemble them into one large network packet every 20ms, and send it after compression.
 
 > [!NOTE]
 > ```
@@ -89,15 +91,25 @@ Whether to enable compatibility mode. If set to `true`, the `blackList` below wi
 
 The blacklist for compatibility mode. Packets listed here will be skipped by NEB. By default, it includes a list of Velocity-related packets, but you can add new packets as needed.
 
+> [!WARNING]
+> 为确保包的顺序性，黑名单中的包会打断正在进行的聚合。如果黑名单中有许多的包，或者对应包发送过于频繁，则聚合-压缩的效率会降低。
+> 
+> To ensure packet ordering, packets in the blacklist will interrupt the ongoing aggregation. If there are many packets in the blacklist, or if the corresponding packets are sent too frequently, the efficiency of aggregation-compression will decrease.
+
 ### contextLevel
 
 在进行压缩时的上下文窗口长度。可选范围为21\~25的整数，分别代表2\~32MB。默认为23，即8MB。
 
-上下文窗口长度越长，则压缩效果越好，越节省流量；但也会消耗更多的内存。对于100名玩家的服务器，设置为25会产生约额外3200MB的内存占用。
+上下文窗口长度越长，则压缩效果越好，越节省流量；但也会消耗更多的内存。
 
 The context window size used for compression. Valid values are integers from 21 to 25, representing 2MB to 32MB respectively. The default is 23 (8MB).
 
-A larger context window results in better compression and bandwidth savings, but consumes more memory. For a server with 100 players, a setting of 25 will result in approximately 3200MB of additional memory usage.
+A larger context window results in better compression and bandwidth savings, but consumes more memory.
+
+> [!TIP]
+> 对于100名玩家的服务器，设置为25会产生约额外3200MB的内存占用。
+> 
+> For a server with 100 players, a setting of 25 will result in approximately 3200MB of additional memory usage.
 
 ## 版权和许可 | Copyrights and Licenses
 
