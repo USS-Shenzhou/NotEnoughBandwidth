@@ -12,17 +12,17 @@ NEB uses various methods to save as much network traffic as possible during Mine
 
 In the ZZZZ Dataset from [TeaCon Jiachen](teacon.cn), compared to raw uncompressed data, NEB can reduce the server's outbound traffic to 13% of its original size.
 
-
+<img width="1908" height="1908" alt="output" src="https://github.com/user-attachments/assets/5e015031-f6e8-4280-a280-17da859a8615" />
 
 在原版环境下的测试中，服务器出站流量被减少到原来的18%。理论上，随着安装的模组数量的增加，网络传输的内容会更多更复杂，压缩效果会更好。
 
-在游戏中按下Alt+N来简单地查看流量情况。
-
 In tests conducted in a Vanilla environment, the server outbound traffic was reduced to 18% of its original size. Theoretically, as the number of installed mods increases, the content transmitted over the network becomes larger and more complex, leading to better compression performance.
+
+在游戏中按下Alt+N来简单地查看流量情况。
 
 Press Alt+N in-game to easily view the network traffic status.
 
-
+<img width="2559" height="1383" alt="image" src="https://github.com/user-attachments/assets/216dea71-dbc7-40f2-8117-d20fcf74cd11" />
 
 ## 主要功能 | Main Features
 
