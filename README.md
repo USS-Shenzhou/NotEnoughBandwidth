@@ -6,11 +6,11 @@
 
 NEB通过多种方式来尽可能地节省Minecraft游玩过程中产生的流量，并对模组和玩家保持透明。
 
-在[TeaCon 甲辰](teacon.cn)的土球数据集中，相比未压缩的原始数据，NEB可以将服务器的出站流量减少到原来的13%。
+在[TeaCon 甲辰](teacon.cn)的土球数据集中，相比未压缩的原始数据，NEB理论上可以将服务器的出站流量减少到原来的7.6%，实际测得的值约为13.8%。
 
 NEB uses various methods to save as much network traffic as possible during Minecraft gameplay, while remaining transparent to both mods and players.
 
-In the ZZZZ Dataset from [TeaCon Jiachen](teacon.cn), compared to raw uncompressed data, NEB can reduce the server's outbound traffic to 13% of its original size.
+In the ZZZZ Dataset from [TeaCon Jiachen](teacon.cn), compared to raw uncompressed data, NEB can theoretically reduce the server's outbound traffic to 7.6% of its original size, with an actual measured value of approximately 13.8%.
 
 <img width="1908" height="1908" alt="output" src="https://github.com/user-attachments/assets/5e015031-f6e8-4280-a280-17da859a8615" />
 
