@@ -2,6 +2,28 @@
 
 ![icon](src/main/resources/icon-chn_500.png)
 
+## 简介 | Introduction
+
+NEB通过多种方式来尽可能地节省Minecraft游玩过程中产生的流量，并对模组和玩家保持透明。
+
+在[TeaCon 甲辰](teacon.cn)的土球数据集中，相比未压缩的原始数据，NEB可以将服务器的出站流量减少到原来的13%。
+
+NEB uses various methods to save as much network traffic as possible during Minecraft gameplay, while remaining transparent to both mods and players.
+
+In the ZZZZ Dataset from [TeaCon Jiachen](teacon.cn), compared to raw uncompressed data, NEB can reduce the server's outbound traffic to 13% of its original size.
+
+
+
+在原版环境下的测试中，服务器出站流量被减少到原来的18%。理论上，随着安装的模组数量的增加，网络传输的内容会更多更复杂，压缩效果会更好。
+
+在游戏中按下Alt+N来简单地查看流量情况。
+
+In tests conducted in a Vanilla environment, the server outbound traffic was reduced to 18% of its original size. Theoretically, as the number of installed mods increases, the content transmitted over the network becomes larger and more complex, leading to better compression performance.
+
+Press Alt+N in-game to easily view the network traffic status.
+
+
+
 ## 主要功能 | Main Features
 
 ### 紧凑的包头 | Compact Packet Header
@@ -73,6 +95,12 @@ Optimize the situation where vanilla often produces a large number of small netw
 > - s = varint, size of this subpacket
 > - d = bytes, data of this subpacket
 
+### 延迟区块缓存 | Delayed Chunk Cache
+
+在原版，当玩家移动时，服务端会指示客户端立即忘记身后的区块；如果又回到原来的位置，就需要发送区块的全量信息。通过延后这个“忘记”，可以节省在机器上跳来跳去时产生的区块发送流量。
+
+In Vanilla, when a player moves, the server instructs the client to immediately forget the chunks behind them; if the player returns to the original position, the full chunk data must be sent again. By delaying this "forgetting", the chunk transmission traffic generated when poking around can be saved.
+
 ## 配置 | Config
 
 在`config/NotEnoughBandwidthConfig.json`修改配置文件。
@@ -81,11 +109,21 @@ Modify the configuration file at `config/NotEnoughBandwidthConfig.json`.
 
 ### compatibleMode
 
+> [!NOTE]
+> **此选项在客户端和服务端独立生效。**
+>
+> WORK INDEPENDENTLY ON CLIENT AND SERVER.
+
 是否要开启兼容模式。如果为true，下方的`blackList`会被启用。
 
 Whether to enable compatibility mode. If set to `true`, the `blackList` below will be used.
 
 ### blackList
+
+> [!NOTE]
+> **此选项在客户端和服务端独立生效。**
+>
+> WORK INDEPENDENTLY ON CLIENT AND SERVER.
 
 兼容模式黑名单。在黑名单中的包会被NEB跳过。默认自带一系列和velocity相关的包，你也可以按需增加新的包。
 
@@ -97,6 +135,11 @@ The blacklist for compatibility mode. Packets listed here will be skipped by NEB
 > To ensure packet ordering, packets in the blacklist will interrupt the ongoing aggregation. If there are many packets in the blacklist, or if the corresponding packets are sent too frequently, the efficiency of aggregation-compression will decrease.
 
 ### contextLevel
+
+> [!NOTE]
+> **此选项在客户端和服务端独立生效。**
+>
+> WORK INDEPENDENTLY ON CLIENT AND SERVER.
 
 在进行压缩时的上下文窗口长度。可选范围为21\~25的整数，分别代表2\~32MB。默认为23，即8MB。
 
@@ -110,6 +153,17 @@ A larger context window results in better compression and bandwidth savings, but
 > 对于100名玩家的服务器，设置为25会产生约额外3200MB的内存占用。
 > 
 > For a server with 100 players, a setting of 25 will result in approximately 3200MB of additional memory usage.
+
+### dccSizeLimit, dccDistance, dccTimeout
+
+> [!NOTE]
+> **这些选项仅在服务端生效。**
+> 
+> ONLY WORK ON SERVER.
+
+延迟区块缓存（DCC）允许的最大缓存区块数量、缓存区块距离、缓存过期时间。较大的值可能会占用更多内存，较小的值可能会更频繁地触发更新。
+
+The maximum number of cached chunks, cached chunk distance, and cache timeout allowed by the Delayed Chunk Cache (DCC). Larger values may consume more memory, while smaller values may trigger updates more frequently.
 
 ## 版权和许可 | Copyrights and Licenses
 

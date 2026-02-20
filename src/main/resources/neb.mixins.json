@@ -10,7 +10,8 @@
     "CustomPacketPayloadMixin",
     "NetworkRegistryMixin",
     "PacketDecoderMixin",
-    "PacketEncoderMixin"
+    "PacketEncoderMixin",
+    "ChunkMapMixin"
   ],
   "client": [
   ],

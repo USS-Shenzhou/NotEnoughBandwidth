@@ -2,7 +2,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'idea'
-    id 'net.neoforged.moddev' version '2.0.137'
+    id 'net.neoforged.moddev' version '2.0.140'
 }
 
 version = mod_version
@@ -114,12 +114,7 @@ dependencies {
     // Example project dependency using a sister or child project:
     // implementation project(":myproject")
 
-    jarJar(implementation("com.github.luben:zstd-jni")) {
-        version {
-            strictly '[1.5, 1.6)'
-            prefer '1.5.7-6'
-        }
-    }
+    jarJar(implementation("com.github.luben:zstd-jni:1.+"))
 
     // For more info:
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html

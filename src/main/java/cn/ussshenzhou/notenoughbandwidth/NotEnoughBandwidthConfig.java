@@ -25,6 +25,9 @@ public class NotEnoughBandwidthConfig implements TConfig {
     }};
     public boolean debugLog = false;
     public int contextLevel = 23;
+    public int dccSizeLimit = 60;
+    public int dccDistance = 5;
+    public int dccTimeout = 60;
 
     @Expose(serialize = false, deserialize = false)
     public static final HashSet<String> COMMON_BLOCK_LIST = new HashSet<>() {{
