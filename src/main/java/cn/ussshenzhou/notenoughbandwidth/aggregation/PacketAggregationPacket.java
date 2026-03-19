@@ -4,7 +4,7 @@ import cn.ussshenzhou.notenoughbandwidth.NotEnoughBandwidthConfig;
 import cn.ussshenzhou.notenoughbandwidth.ModConstants;
 import cn.ussshenzhou.notenoughbandwidth.config.ConfigHelper;
 import cn.ussshenzhou.notenoughbandwidth.indextype.CustomPacketPrefixHelper;
-import cn.ussshenzhou.notenoughbandwidth.stat.SimpleStat;
+import cn.ussshenzhou.notenoughbandwidth.stat.SimpleStatManager;
 import cn.ussshenzhou.notenoughbandwidth.zstd.ZstdHelper;
 import com.mojang.logging.LogUtils;
 import com.mojang.logging.annotations.MethodsReturnNonnullByDefault;
@@ -85,7 +85,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
             buffer.writeBytes(rawBuf);
             this.bakedSize = rawSize;
         }
-        SimpleStat.outRaw(rawSize);
+        SimpleStatManager.outRaw(rawSize);
         rawBuf.release();
     }
 
@@ -128,7 +128,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
     //----------------------------------------handle----------------------------------------
     public void handler(IPayloadContext context) {
         this.connection = context.connection();
-        SimpleStat.inRaw(bakedSize - data.readableBytes());
+        SimpleStatManager.inRaw(bakedSize - data.readableBytes());
         // B
         boolean compressed = data.readBoolean();
         RegistryFriendlyByteBuf raw;
@@ -139,7 +139,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
         } else {
             raw = new RegistryFriendlyByteBuf(data, data.registryAccess(), data.getConnectionType());
         }
-        SimpleStat.inRaw(raw.readableBytes());
+        SimpleStatManager.inRaw(raw.readableBytes());
         var protocolInfo = context.connection().getInboundProtocol();
         var packetsToHandle = new ArrayList<AggregatedDecodePacket>();
         while (raw.readableBytes() > 0) {

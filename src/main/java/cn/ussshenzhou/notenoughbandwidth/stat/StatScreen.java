@@ -1,21 +1,30 @@
 package cn.ussshenzhou.notenoughbandwidth.stat;
 
-import cn.ussshenzhou.notenoughbandwidth.config.ConfigHelper;
+import cn.ussshenzhou.network.StatQuery;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import org.joml.Matrix3x2fStack;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+import static cn.ussshenzhou.notenoughbandwidth.stat.SimpleStatManager.*;
 
 /**
  * @author USS_Shenzhou
  */
 public class StatScreen extends Screen {
-    private String client = "Client";
-    private String actual = "Actual Transmission";
-    private String actual1 = "";
+    private final String client = "Client";
+    private final String actual = "Actual Transmission";
+    private String actualC = "";
     private String raw = "Raw Payload";
-    private String raw1 = "";
-    private String ratio = "Ratio";
+    private String rawC = "";
+    private String ratioC = "";
+
+    private final String server = "Server";
+    private String actualS = "-";
+    private String rawS = "-";
+    private String ratioS = "-";
+
     private int tick = 0;
 
     public StatScreen() {
@@ -26,27 +35,51 @@ public class StatScreen extends Screen {
     public void tick() {
         super.tick();
         if (tick % 10 == 0) {
-            actual1 = "↓ Inbound  "
-                    + getReadableSpeed((int) SimpleStat.inboundSpeedBaked.averageIn1s())
+            ClientPacketDistributor.sendToServer(new StatQuery());
+            actualC = "↓ Inbound  "
+                    + getReadableSpeed((int) LOCAL.inboundSpeedBaked().averageIn1s())
                     + "  Total  "
-                    + getReadableSize(SimpleStat.inboundBytesBaked.get())
+                    + getReadableSize(LOCAL.inboundBytesBaked().get())
                     + "    ↑ Outbound  "
-                    + getReadableSpeed((int) SimpleStat.outboundSpeedBaked.averageIn1s())
+                    + getReadableSpeed((int) LOCAL.outboundSpeedBaked().averageIn1s())
                     + "  Total  "
-                    + getReadableSize(SimpleStat.outboundBytesBaked.get());
-            raw1 = "↓ Inbound  "
-                    + getReadableSpeed((int) SimpleStat.inboundSpeedRaw.averageIn1s())
+                    + getReadableSize(LOCAL.outboundBytesBaked().get());
+            rawC = "↓ Inbound  "
+                    + getReadableSpeed((int) LOCAL.inboundSpeedRaw().averageIn1s())
                     + "  Total  "
-                    + getReadableSize(SimpleStat.inboundBytesRaw.get())
+                    + getReadableSize(LOCAL.inboundBytesRaw().get())
                     + "    ↑ Outbound  "
-                    + getReadableSpeed((int) SimpleStat.outboundSpeedRaw.averageIn1s())
+                    + getReadableSpeed((int) LOCAL.outboundSpeedRaw().averageIn1s())
                     + "  Total  "
-                    + getReadableSize(SimpleStat.outboundBytesRaw.get());
-            ratio = "Ratio                            "
-                    + String.format("%.2f", 100d * SimpleStat.inboundBytesBaked.get() / SimpleStat.inboundBytesRaw.get())
+                    + getReadableSize(LOCAL.outboundBytesRaw().get());
+            ratioC = "Ratio                            "
+                    + String.format("%.2f", 100d * LOCAL.inboundBytesBaked().get() / LOCAL.inboundBytesRaw().get())
                     + "%                                        "
-                    + String.format("%.2f", 100d * SimpleStat.outboundBytesBaked.get() / SimpleStat.outboundBytesRaw.get())
+                    + String.format("%.2f", 100d * LOCAL.outboundBytesBaked().get() / LOCAL.outboundBytesRaw().get())
                     + "%";
+
+            actualS = "↓ Inbound  "
+                    + getReadableSpeed((int) inboundSpeedBakedServer)
+                    + "  Total  "
+                    + getReadableSize(inboundBytesBakedServer)
+                    + "    ↑ Outbound  "
+                    + getReadableSpeed((int) outboundSpeedBakedServer)
+                    + "  Total  "
+                    + getReadableSize(outboundBytesBakedServer);
+            rawS = "↓ Inbound  "
+                    + getReadableSpeed((int) inboundSpeedRawServer)
+                    + "  Total  "
+                    + getReadableSize(inboundBytesRawServer)
+                    + "    ↑ Outbound  "
+                    + getReadableSpeed((int) outboundSpeedRawServer)
+                    + "  Total  "
+                    + getReadableSize(outboundBytesRawServer);
+            ratioS = "Ratio                            "
+                    + String.format("%.2f", 100d * inboundBytesBakedServer / inboundBytesRawServer)
+                    + "%                                        "
+                    + String.format("%.2f", 100d * outboundBytesBakedServer / outboundBytesRawServer)
+                    + "%";
+
         }
         tick++;
     }
@@ -54,15 +87,22 @@ public class StatScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float a) {
         super.render(graphics, mouseX, mouseY, a);
+        graphics.fill(0,0,width,height,0x80000000);
         var textRenderer = graphics.textRenderer();
         var pose = graphics.pose();
         textRenderer.accept(10, 10, Component.literal(client));
         textRenderer.accept(10, 30, Component.literal(actual));
-        textRenderer.accept(10, 50, Component.literal(actual1));
-        textRenderer.accept(10, 70, Component.literal(raw));
-        textRenderer.accept(10, 90, Component.literal(raw1));
-        textRenderer.accept(10, 110, Component.literal(ratio));
+        textRenderer.accept(10, 40, Component.literal(actualC));
+        textRenderer.accept(10, 60, Component.literal(raw));
+        textRenderer.accept(10, 70, Component.literal(rawC));
+        textRenderer.accept(10, 90, Component.literal(ratioC));
 
+        textRenderer.accept(10, 120, Component.literal(server));
+        textRenderer.accept(10, 140, Component.literal(actual));
+        textRenderer.accept(10, 150, Component.literal(actualS));
+        textRenderer.accept(10, 170, Component.literal(raw));
+        textRenderer.accept(10, 180, Component.literal(rawS));
+        textRenderer.accept(10, 200, Component.literal(ratioS));
     }
 
     private String getReadableSpeed(int bytes) {

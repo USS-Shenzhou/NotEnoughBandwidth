@@ -150,9 +150,9 @@ public class CachedChunkTrackingView implements ChunkTrackingView {
             ChunkTrackingView.difference(major, next, chunkPos -> {
                 if (cache.remove(chunkPos.pack()) == NO_CACHE) {
                     onEnter.accept(chunkPos);
-                    LOGGER.debug("Cache miss at {} in {}'s chunk cache.", chunkPos, player.getPlainTextName());
+                    LOGGER.trace("Cache miss at {} in {}'s chunk cache.", chunkPos, player.getPlainTextName());
                 } else {
-                    LOGGER.debug("Cache hit at {} in {}'s chunk cache.", chunkPos, player.getPlainTextName());
+                    LOGGER.trace("Cache hit at {} in {}'s chunk cache.", chunkPos, player.getPlainTextName());
                 }
             }, chunkPos -> {
                 if (next.center().distanceSquared(chunkPos) <= chunkCacheDistanceSquared) {
@@ -163,7 +163,7 @@ public class CachedChunkTrackingView implements ChunkTrackingView {
             // Remove all chunks that are too far from users.
             enumerate((pos, _) -> {
                 if (next.center().distanceSquared(pos) > chunkCacheDistanceSquared) {
-                    LOGGER.debug("Remove {} from {}'s chunk cache: too far away.", ChunkPos.unpack(pos), player.getPlainTextName());
+                    LOGGER.trace("Remove {} from {}'s chunk cache: too far away.", ChunkPos.unpack(pos), player.getPlainTextName());
                     return CacheConsumer.REMOVE;
                 }
                 return CacheConsumer.CONTINUE;
@@ -176,7 +176,7 @@ public class CachedChunkTrackingView implements ChunkTrackingView {
             if (legacy || cache.size() >= chunkCacheBufferSize) {
                 ChunkPos chunkPos = ChunkPos.unpack(pos);
                 onLeave.accept(chunkPos);
-                LOGGER.debug("Remove {} from {}'s chunk cache: {}", chunkPos, player.getPlainTextName(), legacy ? "timeout" : "buffer is full");
+                LOGGER.trace("Remove {} from {}'s chunk cache: {}", chunkPos, player.getPlainTextName(), legacy ? "timeout" : "buffer is full");
                 return CacheConsumer.REMOVE;
             } else {
                 return CacheConsumer.STOP;
