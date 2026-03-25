@@ -69,6 +69,7 @@ public class AggregationManager {
                     : new ServerboundCustomPayloadPacket(new PacketAggregationPacket(sendPackets, encoder.getProtocolInfo(), connection))
             );
             packets.clear();
+            connection.flushChannel();
         } catch (Exception e) {
             LogUtils.getLogger().error("Skipped: Failed to flush packets.", e);
         }

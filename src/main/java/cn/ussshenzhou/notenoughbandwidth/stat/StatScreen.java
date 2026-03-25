@@ -1,11 +1,10 @@
 package cn.ussshenzhou.notenoughbandwidth.stat;
 
 import cn.ussshenzhou.network.StatQuery;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import static cn.ussshenzhou.notenoughbandwidth.stat.SimpleStatManager.*;
 
@@ -85,8 +84,8 @@ public class StatScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float a) {
-        super.render(graphics, mouseX, mouseY, a);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+        super.extractRenderState(graphics, mouseX, mouseY, a);
         graphics.fill(0,0,width,height,0x80000000);
         var textRenderer = graphics.textRenderer();
         var pose = graphics.pose();

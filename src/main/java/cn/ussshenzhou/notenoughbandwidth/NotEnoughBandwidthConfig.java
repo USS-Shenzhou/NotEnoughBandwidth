@@ -5,6 +5,8 @@ import cn.ussshenzhou.notenoughbandwidth.config.ConfigHelper;
 import cn.ussshenzhou.notenoughbandwidth.config.TConfig;
 import com.google.gson.annotations.Expose;
 import net.minecraft.util.Mth;
+import net.neoforged.neoforge.network.payload.*;
+import net.neoforged.neoforge.network.registration.NetworkRegistry;
 
 import java.util.HashSet;
 
@@ -29,11 +31,19 @@ public class NotEnoughBandwidthConfig implements TConfig {
     public int dccDistance = 5;
     public int dccTimeout = 60;
 
+    @SuppressWarnings("UnstableApiUsage")
     @Expose(serialize = false, deserialize = false)
     public static final HashSet<String> COMMON_BLOCK_LIST = new HashSet<>() {{
         add("minecraft:finish_configuration");
         add(PacketAggregationPacket.TYPE.id().toString());
         add("minecraft:login");
+        add(MinecraftRegisterPayload.ID.toString());
+        add(MinecraftUnregisterPayload.ID.toString());
+        add(ModdedNetworkQueryPayload.ID.toString());
+        add(ModdedNetworkPayload.ID.toString());
+        add(ModdedNetworkSetupFailedPayload.ID.toString());
+        add(CommonVersionPayload.ID.toString());
+        add(CommonRegisterPayload.ID.toString());
     }};
 
     public static NotEnoughBandwidthConfig get() {
