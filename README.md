@@ -1,5 +1,7 @@
 # 网络包优化 | Not Enough Bandwidth (NEB)
 
+如果您有意愿帮助我们将NEB进行反向移植，请在提交任何PR之前到[Discord](https://discord.gg/ZAn7U2BJpb)与 USS_Shenzhou 讨论。
+
 ![icon](src/main/resources/icon-chn_500.png)
 
 ## 简介 | Introduction

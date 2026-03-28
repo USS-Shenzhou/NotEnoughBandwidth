@@ -161,7 +161,7 @@ public class CachedChunkTrackingView implements ChunkTrackingView {
                 }
             }, chunkPos -> {
                 if (next.center().getChessboardDistance(chunkPos) <= chunkCacheDistance) {
-                    context.putTicket(chunkPos, chunkCacheTimeout * 20 /* FIXME: /tick wrap will break this! */);
+                    context.putTicket(player.chunkPosition(), chunkCacheTimeout * 20 /* FIXME: /tick wrap will break this! */);
                     cache.put(chunkPos.pack(), now);
                 }
             });
