@@ -1,0 +1,26 @@
+modLoader="javafml"
+loaderVersion="[43,)"
+license="GNU GPL 3.0"
+issueTrackerURL=""
+showAsResourcePack=false
+
+[[mods]]
+modId="neb"
+version="1.19.2-0+alpha"
+displayName="NotEnoughBandwidth"
+authors="USS_Shenzhou"
+description='''Not Enough Bandwidth (NEB) For Forge 1.19.2'''
+
+[[dependencies.neb]]
+    modId="forge"
+    mandatory=true
+    versionRange="[43,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.neb]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.19.2,1.20)"
+    ordering="NONE"
+    side="BOTH"
