@@ -12,6 +12,8 @@
     "NetworkRegistryMixin",
     "PacketDecoderMixin",
     "PacketEncoderMixin",
+    "PalettedContainerDataMixin",
+    "PalettedContainerMixin",
     "PlayerListMixin"
   ],
   "client": [
