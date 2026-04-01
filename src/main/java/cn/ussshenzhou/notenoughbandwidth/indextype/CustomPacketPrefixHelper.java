@@ -2,6 +2,7 @@ package cn.ussshenzhou.notenoughbandwidth.indextype;
 
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.VarInt;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
@@ -56,57 +57,42 @@ import java.util.List;
  * @author USS_Shenzhou
  */
 public class CustomPacketPrefixHelper {
-    private static final ThreadLocal<CustomPacketPrefixHelper> INSTANCES = ThreadLocal.withInitial(CustomPacketPrefixHelper::new);
 
-    private int prefix = 0;
-    private Identifier type = null;
-
-    private CustomPacketPrefixHelper() {
-    }
-
-    public static CustomPacketPrefixHelper get() {
-        var instance = INSTANCES.get();
-        instance.prefix = 0;
-        instance.type = null;
-        return instance;
-    }
-
-    public CustomPacketPrefixHelper index(Identifier type) {
-        int index = NamespaceIndexManager.getNebIndex(type);
-        if (index == 0) {
-            this.type = type;
-            return this;
-        }
-        this.type = type;
-        prefix |= index;
-        return this;
-    }
-
-    public void save(FriendlyByteBuf buf) {
-        if (prefix >>> 31 == 0) {
-            buf.writeByte(prefix >>> 24);
+    public static void writeType(Identifier type, FriendlyByteBuf buf) {
+        var index = NamespaceIndexManager.getPathIndex(type.getNamespace());
+        if (index == null) {
+            buf.writeByte(0);
             buf.writeIdentifier(type);
-        }
-        if (prefix >>> 31 == 1) {
-            if ((prefix >>> 30 & 1) == 1) {
-                buf.writeMedium(prefix >>> 8);
-            } else {
-                buf.writeInt(prefix);
-            }
+        } else {
+            VarInt.write(buf, index.namespaceIndex);
+            VarInt.write(buf, index.get(type.getPath()));
         }
     }
 
     @Nullable
-    public static Identifier getType(FriendlyByteBuf buf) {
-        int fixed = buf.readUnsignedByte() & 0xff;
-        if (fixed >>> 7 == 0) {
+    public static Identifier readType(FriendlyByteBuf buf) {
+        byte b = buf.readByte();
+        if (b == 0) {
             return buf.readIdentifier();
         } else {
-            if (fixed >>> 6 == 0) {
-                return NamespaceIndexManager.getIdentifier(buf.readUnsignedMedium(), false);
+            return NamespaceIndexManager.getIdentifier(read(b, buf),  VarInt.read(buf));
+        }
+    }
+
+    private static int read(byte in, FriendlyByteBuf buf) {
+        int out = 0;
+        int bytes = 0;
+        while (true) {
+            out |= (in & 127) << bytes * 7;
+            if ((in & 128) == 128) {
+                if (bytes++ > 4) {
+                    throw new RuntimeException("VarInt too big");
+                }
+                in = buf.readByte();
             } else {
-                return NamespaceIndexManager.getIdentifier(buf.readUnsignedShort(), true);
+                break;
             }
         }
+        return out;
     }
 }
