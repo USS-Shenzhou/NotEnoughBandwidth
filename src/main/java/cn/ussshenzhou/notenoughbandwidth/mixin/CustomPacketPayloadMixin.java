@@ -33,7 +33,7 @@ public class CustomPacketPayloadMixin {
             buf.writeIdentifier(identifier);
             return buf;
         }
-        CustomPacketPrefixHelper.writeType(identifier, buf);
+        CustomPacketPrefixHelper.write(identifier, buf);
         return buf;
     }
 
@@ -42,6 +42,6 @@ public class CustomPacketPayloadMixin {
         if (val$protocol != ConnectionProtocol.PLAY) {
             return buf.readIdentifier();
         }
-        return CustomPacketPrefixHelper.readType(buf);
+        return CustomPacketPrefixHelper.read(buf);
     }
 }
