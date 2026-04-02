@@ -252,7 +252,8 @@ public class NamespaceIndexManager {
         @SuppressWarnings("unchecked")
         var registration = ((Map<ConnectionProtocol, Map<Identifier, PayloadRegistration<?>>>) PAYLOAD_REGISTRATIONS.get()).get(ConnectionProtocol.PLAY);
         types.forEach(type -> {
-            if (!registration.containsKey(type)) {
+            var payload = registration.get(type);
+            if (payload == null || payload.optional()) {
                 return;
             }
             fillSingle(namespaces, paths, namespaceIndex, type);

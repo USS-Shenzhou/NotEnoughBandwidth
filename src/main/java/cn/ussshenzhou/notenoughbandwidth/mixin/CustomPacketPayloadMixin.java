@@ -24,24 +24,21 @@ public class CustomPacketPayloadMixin {
 
     @Redirect(method = "writeCap(Lnet/minecraft/network/FriendlyByteBuf;Lnet/minecraft/network/protocol/common/custom/CustomPacketPayload$Type;Lnet/minecraft/network/protocol/common/custom/CustomPacketPayload;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/FriendlyByteBuf;writeIdentifier(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/network/FriendlyByteBuf;"))
     private FriendlyByteBuf nebwIndexedHeaderEncode(FriendlyByteBuf buf, Identifier identifier) {
-        if (NotEnoughBandwidthConfig.skipType(identifier.toString()) || val$protocol != ConnectionProtocol.PLAY) {
+        if (val$protocol != ConnectionProtocol.PLAY) {
             buf.writeIdentifier(identifier);
             return buf;
         }
-        CustomPacketPrefixHelper.writeType(identifier,buf);
+        if (NotEnoughBandwidthConfig.skipType(identifier.toString())) {
+            buf.writeByte(0);
+            buf.writeIdentifier(identifier);
+            return buf;
+        }
+        CustomPacketPrefixHelper.writeType(identifier, buf);
         return buf;
     }
 
     @Redirect(method = "decode(Lnet/minecraft/network/FriendlyByteBuf;)Lnet/minecraft/network/protocol/common/custom/CustomPacketPayload;", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/FriendlyByteBuf;readIdentifier()Lnet/minecraft/resources/Identifier;"))
     private Identifier nebwIndexedHeaderDecode(FriendlyByteBuf buf) {
-        try {
-            var tryRead = new FriendlyByteBuf(buf.retainedDuplicate());
-            var tryType = tryRead.readIdentifier();
-            if (NotEnoughBandwidthConfig.skipType(tryType.toString())) {
-                return buf.readIdentifier();
-            }
-        } catch (Exception ignored) {
-        }
         if (val$protocol != ConnectionProtocol.PLAY) {
             return buf.readIdentifier();
         }

@@ -1,19 +1,38 @@
 package cn.ussshenzhou.notenoughbandwidth;
 
 import cn.ussshenzhou.notenoughbandwidth.aggregation.PacketAggregationPacket;
-import cn.ussshenzhou.notenoughbandwidth.config.ConfigHelper;
 import cn.ussshenzhou.notenoughbandwidth.config.TConfig;
 import com.google.gson.annotations.Expose;
 import net.minecraft.util.Mth;
 import net.neoforged.neoforge.network.payload.*;
-import net.neoforged.neoforge.network.registration.NetworkRegistry;
 
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author USS_Shenzhou
  */
 public class NotEnoughBandwidthConfig implements TConfig {
+
+    @Expose(serialize = false, deserialize = false)
+    private static NotEnoughBandwidthConfig CACHE;
+
+    @SuppressWarnings("UnstableApiUsage")
+    @Expose(serialize = false, deserialize = false)
+    private static final Set<String> COMMON_BLOCK_LIST = Set.of(
+            "minecraft:finish_configuration",
+            PacketAggregationPacket.TYPE.id().toString(),
+            "minecraft:login",
+            MinecraftRegisterPayload.ID.toString(),
+            MinecraftUnregisterPayload.ID.toString(),
+            ModdedNetworkQueryPayload.ID.toString(),
+            ModdedNetworkPayload.ID.toString(),
+            ModdedNetworkSetupFailedPayload.ID.toString(),
+            CommonVersionPayload.ID.toString(),
+            CommonRegisterPayload.ID.toString());
+
+    @Expose(serialize = false, deserialize = false)
+    private static final HashSet<String> BLOCK_LIST = new HashSet<>();
 
     public boolean compatibleMode = false;
     public HashSet<String> blackList = new HashSet<>() {{
@@ -31,31 +50,25 @@ public class NotEnoughBandwidthConfig implements TConfig {
     public int dccDistance = 5;
     public int dccTimeout = 60;
 
-    @SuppressWarnings("UnstableApiUsage")
-    @Expose(serialize = false, deserialize = false)
-    public static final HashSet<String> COMMON_BLOCK_LIST = new HashSet<>() {{
-        add("minecraft:finish_configuration");
-        add(PacketAggregationPacket.TYPE.id().toString());
-        add("minecraft:login");
-        add(MinecraftRegisterPayload.ID.toString());
-        add(MinecraftUnregisterPayload.ID.toString());
-        add(ModdedNetworkQueryPayload.ID.toString());
-        add(ModdedNetworkPayload.ID.toString());
-        add(ModdedNetworkSetupFailedPayload.ID.toString());
-        add(CommonVersionPayload.ID.toString());
-        add(CommonRegisterPayload.ID.toString());
-    }};
-
     public static NotEnoughBandwidthConfig get() {
-        return ConfigHelper.getConfigRead(NotEnoughBandwidthConfig.class);
+        return CACHE;
     }
 
     public static boolean skipType(String type) {
-        var cfg = get();
-        return COMMON_BLOCK_LIST.contains(type) || (cfg.compatibleMode && cfg.blackList.contains(type));
+        return BLOCK_LIST.contains(type);
     }
 
     public int getContextLevel() {
         return Mth.clamp(contextLevel, 21, 25);
+    }
+
+    @Override
+    public void onLoad() {
+        CACHE = this;
+        BLOCK_LIST.clear();
+        BLOCK_LIST.addAll(COMMON_BLOCK_LIST);
+        if (compatibleMode) {
+            BLOCK_LIST.addAll(blackList);
+        }
     }
 }

@@ -90,7 +90,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
     }
 
     private static void logCompressRatio(int rawSize, int compressedSize) {
-        if (ConfigHelper.getConfigRead(NotEnoughBandwidthConfig.class).debugLog) {
+        if (NotEnoughBandwidthConfig.get().debugLog) {
             var log = "Packet aggregated and compressed: "
                     + rawSize
                     + " bytes -> "
