@@ -34,6 +34,7 @@ public class NotEnoughBandwidthConfig implements TConfig {
     @Expose(serialize = false, deserialize = false)
     private static final HashSet<String> BLOCK_LIST = new HashSet<>();
 
+    public boolean optimizeOptional = false;
     public boolean compatibleMode = false;
     public HashSet<String> blackList = new HashSet<>() {{
         add("minecraft:command_suggestion");

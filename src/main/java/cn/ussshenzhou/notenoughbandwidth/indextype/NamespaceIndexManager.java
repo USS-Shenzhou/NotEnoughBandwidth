@@ -1,5 +1,6 @@
 package cn.ussshenzhou.notenoughbandwidth.indextype;
 
+import cn.ussshenzhou.notenoughbandwidth.NotEnoughBandwidthConfig;
 import com.mojang.logging.LogUtils;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.resources.Identifier;
@@ -253,7 +254,7 @@ public class NamespaceIndexManager {
         var registration = ((Map<ConnectionProtocol, Map<Identifier, PayloadRegistration<?>>>) PAYLOAD_REGISTRATIONS.get()).get(ConnectionProtocol.PLAY);
         types.forEach(type -> {
             var payload = registration.get(type);
-            if (payload == null || payload.optional()) {
+            if (payload == null || (!NotEnoughBandwidthConfig.get().optimizeOptional && payload.optional())) {
                 return;
             }
             fillSingle(namespaces, paths, namespaceIndex, type);
