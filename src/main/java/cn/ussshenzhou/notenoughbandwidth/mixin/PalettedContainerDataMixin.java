@@ -11,6 +11,9 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
+/**
+ * @author USS_Shenzhou
+ */
 @Mixin(PalettedContainer.Data.class)
 public class PalettedContainerDataMixin {
 
@@ -20,11 +23,11 @@ public class PalettedContainerDataMixin {
 
     @Redirect(method = "write", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/FriendlyByteBuf;writeFixedSizeLongArray([J)Lnet/minecraft/network/FriendlyByteBuf;"))
     private FriendlyByteBuf neb3DgmEncode(FriendlyByteBuf instance, long[] longs) {
-        //if (this.storage instanceof SimpleBitStorage simpleBitStorage) {
-        //    instance.writeByteArray(BitStorage3DgmHelper.write(simpleBitStorage));
-        //} else {
+        if (this.storage instanceof SimpleBitStorage simpleBitStorage && simpleBitStorage.size == 4096) {
+            BitStorage3DgmHelper.write(instance, simpleBitStorage);
+        } else {
             instance.writeFixedSizeLongArray(this.storage.getRaw());
-        //}
+        }
         return instance;
     }
 }
