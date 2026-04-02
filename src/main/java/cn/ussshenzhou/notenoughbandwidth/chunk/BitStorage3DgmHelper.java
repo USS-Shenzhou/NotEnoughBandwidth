@@ -64,7 +64,7 @@ public class BitStorage3DgmHelper {
             int fromZ = z - (cuboid.lengthZ - 1);
             if (cuboid.lengthX * cuboid.lengthY * cuboid.lengthZ > 8) {
                 context.compressedBuf.writeMedium(
-                        fromX << 20 | fromY << 16 | fromZ << 12 | cuboid.lengthX << 8 | cuboid.lengthY << 4 | cuboid.lengthZ
+                        fromX << 20 | fromY << 16 | fromZ << 12 | (cuboid.lengthX - 1) << 8 | (cuboid.lengthY - 1) << 4 | (cuboid.lengthZ - 1)
                 );
                 context.compressedBuf.writeVarInt(cuboid.value);
                 for (int dy = fromY; dy <= y; dy++) {
@@ -110,13 +110,13 @@ public class BitStorage3DgmHelper {
         buf.readBytes(context.plainBuf, plainSize);
 
         while (context.compressedBuf.isReadable()) {
-            int packed = context.compressedBuf.readMedium();
+            int packed = context.compressedBuf.readUnsignedMedium();
             int fromX = (packed >> 20) & 0xF;
             int fromY = (packed >> 16) & 0xF;
             int fromZ = (packed >> 12) & 0xF;
-            int lengthX = (packed >> 8) & 0xF;
-            int lengthY = (packed >> 4) & 0xF;
-            int lengthZ = packed & 0xF;
+            int lengthX = ((packed >> 8) & 0xF) + 1;
+            int lengthY = ((packed >> 4) & 0xF) + 1;
+            int lengthZ = (packed & 0xF) + 1;
             int value = context.compressedBuf.readVarInt();
 
             for (int dy = fromY; dy < fromY + lengthY; dy++) {
@@ -130,20 +130,25 @@ public class BitStorage3DgmHelper {
             }
         }
 
+        int bitsRemaining = 0;
         long mask = (1L << storage.bits) - 1;
         for (int i = 0; i < SIZE_XYZ; i++) {
             if (context.compressed[i]) {
                 continue;
             }
-            if (context.bitOffset == 0) {
-                if (context.plainBuf.readableBytes() >= 8) {
-                    context.currentLong = context.plainBuf.readLong();
-                }
-                context.bitOffset = 64;
+
+            if (bitsRemaining >= storage.bits) {
+                context.ids[i] = (int) (context.currentLong & mask);
+                context.currentLong >>>= storage.bits;
+                bitsRemaining -= storage.bits;
+            } else {
+                int partial = (int) context.currentLong;
+                context.currentLong = context.plainBuf.readLong();
+                int bitsFromNew = storage.bits - bitsRemaining;
+                context.ids[i] = (int) ((partial | (context.currentLong << bitsRemaining)) & mask);
+                context.currentLong >>>= bitsFromNew;
+                bitsRemaining = 64 - bitsFromNew;
             }
-            context.ids[i] = (int) (context.currentLong & mask);
-            context.currentLong >>>= storage.bits;
-            context.bitOffset -= storage.bits;
         }
 
         int outputIndex = 0;
