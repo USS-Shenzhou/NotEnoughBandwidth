@@ -2,6 +2,7 @@ package cn.ussshenzhou.notenoughbandwidth.mixin;
 
 import cn.ussshenzhou.notenoughbandwidth.NotEnoughBandwidthConfig;
 import cn.ussshenzhou.notenoughbandwidth.indextype.CustomPacketPrefixHelper;
+import cn.ussshenzhou.notenoughbandwidth.indextype.NamespaceIndexManager;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.Identifier;
@@ -23,30 +24,25 @@ public class CustomPacketPayloadMixin {
     ConnectionProtocol val$protocol;
 
     @Redirect(method = "writeCap(Lnet/minecraft/network/FriendlyByteBuf;Lnet/minecraft/network/protocol/common/custom/CustomPacketPayload$Type;Lnet/minecraft/network/protocol/common/custom/CustomPacketPayload;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/FriendlyByteBuf;writeIdentifier(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/network/FriendlyByteBuf;"))
-    private FriendlyByteBuf nebwIndexedHeaderEncode(FriendlyByteBuf buf, Identifier Identifier) {
-        if (NotEnoughBandwidthConfig.skipType(Identifier.toString()) || val$protocol != ConnectionProtocol.PLAY) {
-            buf.writeIdentifier(Identifier);
+    private FriendlyByteBuf nebwIndexedHeaderEncode(FriendlyByteBuf buf, Identifier identifier) {
+        if (val$protocol != ConnectionProtocol.PLAY) {
+            buf.writeIdentifier(identifier);
             return buf;
         }
-        CustomPacketPrefixHelper.get()
-                .index(Identifier)
-                .save(buf);
+        if (NotEnoughBandwidthConfig.skipType(identifier.toString())) {
+            buf.writeByte(0);
+            buf.writeIdentifier(identifier);
+            return buf;
+        }
+        CustomPacketPrefixHelper.write(identifier, buf);
         return buf;
     }
 
     @Redirect(method = "decode(Lnet/minecraft/network/FriendlyByteBuf;)Lnet/minecraft/network/protocol/common/custom/CustomPacketPayload;", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/FriendlyByteBuf;readIdentifier()Lnet/minecraft/resources/Identifier;"))
     private Identifier nebwIndexedHeaderDecode(FriendlyByteBuf buf) {
-        try {
-            var tryRead = new FriendlyByteBuf(buf.retainedDuplicate());
-            var tryType = tryRead.readIdentifier();
-            if (NotEnoughBandwidthConfig.skipType(tryType.toString())) {
-                return buf.readIdentifier();
-            }
-        } catch (Exception ignored) {
-        }
         if (val$protocol != ConnectionProtocol.PLAY) {
             return buf.readIdentifier();
         }
-        return CustomPacketPrefixHelper.getType(buf);
+        return CustomPacketPrefixHelper.read(buf);
     }
 }

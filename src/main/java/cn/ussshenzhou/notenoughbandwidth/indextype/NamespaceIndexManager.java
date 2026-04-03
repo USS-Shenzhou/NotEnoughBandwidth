@@ -1,10 +1,12 @@
 package cn.ussshenzhou.notenoughbandwidth.indextype;
 
 import com.mojang.logging.LogUtils;
+import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Tuple;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.registration.NetworkPayloadSetup;
@@ -25,10 +27,11 @@ public class NamespaceIndexManager {
     private static final ArrayList<String> NAMESPACES = new ArrayList<>();
     private static final ArrayList<ArrayList<String>> PATHS = new ArrayList<>();
     private static final Object2IntMap<String> NAMESPACE_MAP = new Object2IntOpenHashMap<>();
-    private static final HashMap<Integer, Object2IntMap<String>> PATH_MAPS = new HashMap<>();
+    private static final Int2ObjectArrayMap<Object2IntMap<String>> PATH_MAPS = new Int2ObjectArrayMap<>();
     private static final VarHandle PAYLOAD_REGISTRATIONS;
 
     static {
+        NAMESPACE_MAP.defaultReturnValue(-1);
         try {
             var lookup = MethodHandles.lookup();
             var privateLookup = MethodHandles.privateLookupIn(NetworkRegistry.class, lookup);
@@ -234,7 +237,11 @@ public class NamespaceIndexManager {
         NAMESPACE_MAP.clear();
         PATH_MAPS.clear();
 
-        AtomicInteger namespaceIndex = new AtomicInteger();
+        // 0 is for un-indexed
+        AtomicInteger namespaceIndex = new AtomicInteger(1);
+        NAMESPACES.add("ILLEGAL");
+        PATHS.add(new ArrayList<>());
+
         indexVanillaPackets(namespaceIndex);
         indexCustomPayloads(types, namespaceIndex);
 
@@ -289,47 +296,29 @@ public class NamespaceIndexManager {
         PATHS.get(namespaceIndex.get() - 1).add(packetId.getPath());
     }
 
-    private static boolean contains(Identifier type) {
+    public static boolean contains(Identifier type) {
         if (!initialized) {
             return false;
         }
         return NAMESPACE_MAP.containsKey(type.getNamespace()) && PATH_MAPS.get(NAMESPACE_MAP.getInt(type.getNamespace())).containsKey(type.getPath());
     }
 
-    public static int getNebIndex(Identifier type) {
-        if (initialized && contains(type)) {
-            int namespaceIndex = NAMESPACE_MAP.getInt(type.getNamespace());
-            int pathIndex = PATH_MAPS.get(namespaceIndex).getInt(type.getPath());
-            if (namespaceIndex < 256 && pathIndex < 256) {
-                return 0xc0000000 | (namespaceIndex << 16) | (pathIndex << 8);
-            } else {
-                return 0x80000000 | (namespaceIndex << 12) | (pathIndex);
-            }
-        }
-        return 0;
+    public static Tuple<Integer, Integer> getCheckedIndex(Identifier type) {
+        int namespaceId = NAMESPACE_MAP.getInt(type.getNamespace());
+        return new Tuple<>(namespaceId, PATH_MAPS.get(namespaceId).getInt(type.getPath()));
     }
 
-    public static int getNebIndexNotTight(Identifier type) {
-        if (initialized && contains(type)) {
-            int namespaceIndex = NAMESPACE_MAP.getInt(type.getNamespace());
-            int pathIndex = PATH_MAPS.get(namespaceIndex).getInt(type.getPath());
-            return 0x80000000 | (namespaceIndex << 12) | (pathIndex);
-        }
-        return 0;
-    }
-
-    public static Identifier getIdentifier(int nebIndex, boolean tight) {
+    public static Identifier getIdentifier(int namespaceIndex, int pathIndex) {
         if (!initialized) {
             return null;
         }
-        int namespaceIndex, pathIndex;
-        if (tight) {
-            namespaceIndex = (nebIndex & 0b11111111_00000000) >>> 8;
-            pathIndex = (nebIndex & 0b00000000_11111111);
-        } else {
-            namespaceIndex = (nebIndex & 0b11111111_11110000_00000000) >>> 12;
-            pathIndex = (nebIndex & 0b00000000_00001111_11111111);
+        if (namespaceIndex == 0){
+            throw new UnsupportedOperationException("namespaceIndex should not be 0");
         }
         return Identifier.fromNamespaceAndPath(NAMESPACES.get(namespaceIndex), PATHS.get(namespaceIndex).get(pathIndex));
+    }
+
+    public static boolean ready() {
+        return initialized;
     }
 }

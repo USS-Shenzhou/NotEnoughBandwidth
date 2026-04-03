@@ -105,7 +105,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
     private void encodePackets(RegistryFriendlyByteBuf raw, AggregatedEncodePacket packet) {
         var type = packet.type;
         // p
-        CustomPacketPrefixHelper.get().index(type).save(raw);
+        CustomPacketPrefixHelper.write(type, raw);
         // s
         var d = new RegistryFriendlyByteBuf(ByteBufAllocator.DEFAULT.buffer(), raw.registryAccess(), raw.getConnectionType());
         packet.encode(d, protocolInfo, connection.getSending());
@@ -137,7 +137,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
             int size = data.readVarInt();
             raw = new RegistryFriendlyByteBuf(ZstdHelper.decompress(connection, data.retainedDuplicate(), size), data.registryAccess(), data.getConnectionType());
         } else {
-            raw = new RegistryFriendlyByteBuf(data, data.registryAccess(), data.getConnectionType());
+            raw = new RegistryFriendlyByteBuf(data.retain(), data.registryAccess(), data.getConnectionType());
         }
         SimpleStatManager.inRaw(raw.readableBytes());
         var protocolInfo = context.connection().getInboundProtocol();
@@ -152,7 +152,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
 
     private void deAggregatePackets(RegistryFriendlyByteBuf buf, ArrayList<AggregatedDecodePacket> packetsToHandle) {
         // p
-        var type = CustomPacketPrefixHelper.getType(buf);
+        var type = CustomPacketPrefixHelper.read(buf);
         // s
         var size = buf.readVarInt();
         // d
