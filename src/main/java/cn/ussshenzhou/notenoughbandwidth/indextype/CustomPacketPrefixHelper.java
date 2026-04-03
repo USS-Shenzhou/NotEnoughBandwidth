@@ -40,13 +40,13 @@ import java.util.List;
 public class CustomPacketPrefixHelper {
 
     public static void write(Identifier type, FriendlyByteBuf buf) {
-        var index = NamespaceIndexManager.getPathIndex(type.getNamespace());
-        if (index == null) {
+        if (NamespaceIndexManager.contains(type)) {
+            var index = NamespaceIndexManager.getCheckedIndex(type);
+            buf.writeVarInt(index.getA());
+            buf.writeVarInt(index.getB());
+        } else {
             buf.writeByte(0);
             buf.writeIdentifier(type);
-        } else {
-            buf.writeVarInt(index.namespaceIndex);
-            buf.writeVarInt(index.get(type.getPath()));
         }
     }
 

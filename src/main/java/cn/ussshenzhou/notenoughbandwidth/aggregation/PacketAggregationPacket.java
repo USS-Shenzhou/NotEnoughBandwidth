@@ -90,7 +90,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
     }
 
     private static void logCompressRatio(int rawSize, int compressedSize) {
-        if (NotEnoughBandwidthConfig.get().debugLog) {
+        if (ConfigHelper.getConfigRead(NotEnoughBandwidthConfig.class).debugLog) {
             var log = "Packet aggregated and compressed: "
                     + rawSize
                     + " bytes -> "
@@ -137,7 +137,7 @@ public class PacketAggregationPacket implements CustomPacketPayload {
             int size = data.readVarInt();
             raw = new RegistryFriendlyByteBuf(ZstdHelper.decompress(connection, data.retainedDuplicate(), size), data.registryAccess(), data.getConnectionType());
         } else {
-            raw = new RegistryFriendlyByteBuf(data, data.registryAccess(), data.getConnectionType());
+            raw = new RegistryFriendlyByteBuf(data.retain(), data.registryAccess(), data.getConnectionType());
         }
         SimpleStatManager.inRaw(raw.readableBytes());
         var protocolInfo = context.connection().getInboundProtocol();

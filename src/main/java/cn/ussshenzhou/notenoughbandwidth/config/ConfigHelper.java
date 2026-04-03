@@ -66,7 +66,6 @@ public class ConfigHelper {
             } else {
                 FileUtils.write(configFile, GSON.toJson(newInstance), StandardCharsets.UTF_8);
             }
-            newInstance.onLoad();
             CACHE.put(newInstance.getClass(), newInstance);
             saveConfigInternal(newInstance, configFile);
         } catch (IOException ignored) {

@@ -141,7 +141,7 @@ public class CachedChunkTrackingView implements ChunkTrackingView {
 
     private void tick(ServerPlayer player, ChunkTrackingView.Positioned next, Context context) {
         long now = System.currentTimeMillis();
-        var cfg = NotEnoughBandwidthConfig.get();
+        var cfg = ConfigHelper.getConfigRead(NotEnoughBandwidthConfig.class);
         int chunkCacheBufferSize = cfg.dccSizeLimit;
         int chunkCacheDistance = cfg.dccDistance;
         int chunkCacheTimeout = cfg.dccTimeout;

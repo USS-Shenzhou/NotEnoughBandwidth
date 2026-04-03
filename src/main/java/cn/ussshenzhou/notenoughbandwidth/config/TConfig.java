@@ -7,6 +7,4 @@ public interface TConfig {
     default String getChildDirName() {
         return "";
     }
-
-    default void onLoad(){}
 }
