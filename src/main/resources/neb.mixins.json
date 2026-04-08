@@ -12,11 +12,16 @@
     "NetworkRegistryMixin",
     "PacketDecoderMixin",
     "PacketEncoderMixin",
-    "PlayerListMixin"
+    "PlayerListMixin",
+    "Varint21FrameDecoderMixin",
+    "Varint21LengthFieldPrependerMixin"
   ],
   "client": [
   ],
   "injectors": {
     "defaultRequire": 1
+  },
+  "mixinextras": {
+    "minVersion": "0.5.3"
   }
 }
