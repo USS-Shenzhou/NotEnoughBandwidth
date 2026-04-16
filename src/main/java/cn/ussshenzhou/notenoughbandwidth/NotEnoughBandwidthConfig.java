@@ -33,6 +33,9 @@ public class NotEnoughBandwidthConfig implements TConfig {
     public int dccDistance = 5;
     public int dccTimeout = 60;
     public String maxPacketSize = "4MB";
+    public HashSet<String> playersDoNotUseContext = new HashSet<>() {{
+        add("00000000-0000-0000-0000-000000000000");
+    }};
 
     @SuppressWarnings("UnstableApiUsage")
     @Expose(serialize = false, deserialize = false)

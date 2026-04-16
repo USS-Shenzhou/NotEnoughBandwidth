@@ -19,8 +19,9 @@ import java.nio.ByteBuffer;
 public class Context implements Closeable {
     private final ZstdCompressCtx compressCtx;
     private final ZstdDecompressCtx decompressCtx;
+    private final boolean useContext;
 
-    public Context() {
+    public Context(boolean useContext) {
         compressCtx = new ZstdCompressCtx();
         compressCtx.setLevel(3);
         compressCtx.setContentSize(false);
@@ -28,15 +29,18 @@ public class Context implements Closeable {
         compressCtx.setWindowLog(NotEnoughBandwidthConfig.get().getContextLevel());
         decompressCtx = new ZstdDecompressCtx();
         decompressCtx.setMagicless(true);
+        this.useContext = useContext;
     }
 
     public ByteBuffer compress(ByteBuffer raw) {
-        int maxDstSize = (int) Zstd.compressBound(raw.remaining());
-        var dst = ByteBuffer.allocateDirect(maxDstSize);
-        compressCtx.compressDirectByteBufferStream(dst, raw, EndDirective.FLUSH);
-        dst.flip();
-        return dst;
-        //return compressCtx.compress(raw);
+        if (useContext) {
+            int maxDstSize = (int) Zstd.compressBound(raw.remaining());
+            var dst = ByteBuffer.allocateDirect(maxDstSize);
+            compressCtx.compressDirectByteBufferStream(dst, raw, EndDirective.FLUSH);
+            dst.flip();
+            return dst;
+        }
+        return compressCtx.compress(raw);
     }
 
     public ByteBuffer decompress(ByteBuffer compressed, int originalSize) {

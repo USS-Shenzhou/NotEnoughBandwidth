@@ -167,6 +167,17 @@ A larger context window results in better compression and bandwidth savings, but
 
 The maximum number of cached chunks, cached chunk distance, and cache timeout allowed by the Delayed Chunk Cache (DCC). Larger values may consume more memory, while smaller values may trigger updates more frequently.
 
+### playersDoNotUseContext
+
+> [!NOTE]
+> **此选项仅在服务端生效。**
+>
+> ONLY WORK ON SERVER.
+
+指定一个特殊的UUID名单，在这个名单中的玩家不启用Zstd上下文复用。适用于Replay等依赖网络包重放的mod。
+
+Assign a special UUID list, server will not reuse ZSTD context for these players. Designed for mods such as Replay, which relies on packet re-play.
+
 ## 版权和许可 | Copyrights and Licenses
 
 Copyright (C) 2025 USS_Shenzhou
