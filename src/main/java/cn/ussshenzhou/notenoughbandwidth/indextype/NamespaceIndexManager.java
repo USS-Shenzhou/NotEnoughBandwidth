@@ -1,5 +1,6 @@
 package cn.ussshenzhou.notenoughbandwidth.indextype;
 
+import cn.ussshenzhou.notenoughbandwidth.NotEnoughBandwidthConfig;
 import com.mojang.logging.LogUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -28,7 +29,7 @@ public class NamespaceIndexManager {
     private static final ArrayList<ArrayList<String>> PATHS = new ArrayList<>();
     private static final Object2IntMap<String> NAMESPACE_MAP = new Object2IntOpenHashMap<>();
     private static final Int2ObjectArrayMap<Object2IntMap<String>> PATH_MAPS = new Int2ObjectArrayMap<>();
-    private static final VarHandle PAYLOAD_REGISTRATIONS;
+    protected static final VarHandle PAYLOAD_REGISTRATIONS, BUILTIN_PAYLOADS;
 
     static {
         NAMESPACE_MAP.defaultReturnValue(-1);
@@ -36,6 +37,7 @@ public class NamespaceIndexManager {
             var lookup = MethodHandles.lookup();
             var privateLookup = MethodHandles.privateLookupIn(NetworkRegistry.class, lookup);
             PAYLOAD_REGISTRATIONS = privateLookup.findStaticVarHandle(NetworkRegistry.class, "PAYLOAD_REGISTRATIONS", Map.class);
+            BUILTIN_PAYLOADS = privateLookup.findStaticVarHandle(NetworkRegistry.class, "BUILTIN_PAYLOADS", Map.class);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
@@ -311,9 +313,6 @@ public class NamespaceIndexManager {
     public static Identifier getIdentifier(int namespaceIndex, int pathIndex) {
         if (!initialized) {
             return null;
-        }
-        if (namespaceIndex == 0){
-            throw new UnsupportedOperationException("namespaceIndex should not be 0");
         }
         return Identifier.fromNamespaceAndPath(NAMESPACES.get(namespaceIndex), PATHS.get(namespaceIndex).get(pathIndex));
     }
