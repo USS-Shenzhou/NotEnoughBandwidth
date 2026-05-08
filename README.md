@@ -30,53 +30,37 @@ Press Alt+N in-game to easily view the network traffic status.
 
 ### 紧凑的包头 | Compact Packet Header
 
-优化`CustomPacketPayload`编码及对应解码，以紧凑的索引替代包头的`Identifier`(Packet Type)，使模组网络包包头消耗减少为固定3-4字节，而不是网络包类型对应的字符串长度。
+优化`CustomPacketPayload`编码及对应解码，以紧凑的索引替代包头的`Identifier`(Packet Type)，使模组网络包包头消耗在绝大多数情况下仅为2字节（最多4字节），而不是网络包类型对应的字符串长度。
 
-Optimize `CustomPacketPayload` encoding and decoding by replacing the packet header `Identifier` (Packet Type) with a compact index. This reduces the mod network packet header overhead to a fixed 3-4 bytes, instead of the length of the string corresponding to the network packet type.
+Optimize `CustomPacketPayload` encoding and decoding by replacing the packet header `Identifier` (Packet Type) with a compact index. In the vast majority of cases this reduces the mod network packet header overhead to just 2 bytes (at most 4 bytes), instead of the length of the string corresponding to the network packet type.
 
 索引结构如下：
 
 The index structure is as follows:
 
 > [!NOTE]
-> ### Fixed 8 bits header
-> ```
-> ┌------------- 1 byte (8 bits) ---------------┐
-> │               function flags                │
-> ├---┬---┬-------------------------------------┤
-> │ i │ t │      reserved (6 bits)              │
-> └---┴---┴-------------------------------------┘
-> ```
-> - i = indexed (1 bit)
-> - t = tight_indexed (1 bit, only valid if i=1)
-> - reserved = 6 bits (for future use)
+> 自26.1.2-0起，包头不再使用1字节的功能位标志。解码时直接尝试将数据解析为已注册的合法`Identifier`，以此判断该包是否被索引。
+>
+> Since 26.1.2-0 there is no longer a 1-byte function-flags header. Decoding determines whether the packet is indexed by attempting to parse the data as a registered, valid `Identifier`.
 >
 > ### Indexed packet type
-> - If i=0 (not indexed):
+> - If not indexed:
 > ```
-> ┌---------------- N bytes ----------------
-> │ Identifier (packet type) in UTF-8
-> └-----------------------------------------
+> ┌------------- N bytes ----------------
+> │  Identifier (packet type) in UTF-8
+> └--------------------------------------
 > ```
-> - If i=1 and t=0 (indexed, NOT tight):
+> - If indexed:
 > ```
-> ┌-------- 1 byte ---------┬-------- 1 byte --------┬-------- 1 byte --------┐
-> ┌------------- 12 bits ---------------┬-------------- 12 bits --------------┐
-> │    namespace-id (capacity 4096)     │       path-id (capacity 4096)       │
-> └-------------------------------------┴-------------------------------------┘
-> ```
-> - If i=1 and t=1 (indexed, tight):
-> ```
-> ┌--------- 1 byte ----------┬--------- 1 byte ---------┐
-> ┌--------- 8 bits ----------┬--------- 8 bits ---------┐
-> │namespace-id (capacity 256)│  path-id (capacity 256)  │
-> └---------------------------┴--------------------------┘
+> ┌---------- X bytes ---------┬---------- Y bytes ---------┐
+> │   namespace-id (var int)   │     path-id (var int)      │
+> └----------------------------┴----------------------------┘
 > ```
 > Then packet data.
 
-网络包`namespace`及对应的每个`path`少于256时为3字节，大于256时为4字节。即最多支持4096个模组，每个模组4096条通道。
+`namespace-id`与`path-id`各使用VarInt编码（每个1\~2字节）。最多支持4096个模组，每个模组4096条通道；典型场景下两个VarInt合计2字节。
 
-It occupies 3 bytes when the network packet namespace and its corresponding path are fewer than 256, and 4 bytes when greater than 256. This supports up to 4096 mods, with 4096 channels per mod.
+`namespace-id` and `path-id` are each VarInt-encoded (1\~2 bytes each). This supports up to 4096 mods with 4096 channels per mod; in typical scenarios the two VarInts together occupy 2 bytes.
 
 ### 聚合与压缩 | Aggregation and Compress
 
