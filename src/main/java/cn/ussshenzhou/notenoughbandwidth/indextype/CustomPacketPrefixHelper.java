@@ -61,8 +61,8 @@ public class CustomPacketPrefixHelper {
             buf.writeIdentifier(type);
         } else if (NamespaceIndexManager.contains(type)) {
             var index = NamespaceIndexManager.getCheckedIndex(type);
-            buf.writeVarInt(index.getA());
-            buf.writeVarInt(index.getB());
+            buf.writeVarInt(index.getFirst());
+            buf.writeVarInt(index.getSecond());
         } else {
             buf.writeIdentifier(type);
         }

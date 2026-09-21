@@ -1,13 +1,13 @@
 package cn.ussshenzhou.notenoughbandwidth.indextype;
 
 import cn.ussshenzhou.notenoughbandwidth.NotEnoughBandwidthConfig;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.Tuple;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.registration.NetworkPayloadSetup;
@@ -305,9 +305,9 @@ public class NamespaceIndexManager {
         return NAMESPACE_MAP.containsKey(type.getNamespace()) && PATH_MAPS.get(NAMESPACE_MAP.getInt(type.getNamespace())).containsKey(type.getPath());
     }
 
-    public static Tuple<Integer, Integer> getCheckedIndex(Identifier type) {
+    public static Pair<Integer, Integer> getCheckedIndex(Identifier type) {
         int namespaceId = NAMESPACE_MAP.getInt(type.getNamespace());
-        return new Tuple<>(namespaceId, PATH_MAPS.get(namespaceId).getInt(type.getPath()));
+        return new Pair<>(namespaceId, PATH_MAPS.get(namespaceId).getInt(type.getPath()));
     }
 
     public static Identifier getIdentifier(int namespaceIndex, int pathIndex) {

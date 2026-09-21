@@ -32,7 +32,7 @@ public class ModKey {
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
         if (STAT.consumeClick()){
-            Minecraft.getInstance().setScreen(new StatScreen());
+            Minecraft.getInstance().setScreenAndShow(new StatScreen());
         }
     }
 }

@@ -7,7 +7,6 @@ import cn.ussshenzhou.notenoughbandwidth.indextype.CustomPacketPrefixHelper;
 import cn.ussshenzhou.notenoughbandwidth.stat.SimpleStatManager;
 import cn.ussshenzhou.notenoughbandwidth.zstd.ZstdHelper;
 import com.mojang.logging.LogUtils;
-import com.mojang.logging.annotations.MethodsReturnNonnullByDefault;
 import io.netty.buffer.ByteBufAllocator;
 import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
@@ -23,7 +22,6 @@ import java.util.ArrayList;
 /**
  * @author USS_Shenzhou
  */
-@MethodsReturnNonnullByDefault
 public class PacketAggregationPacket implements CustomPacketPayload {
     public static final Type<PacketAggregationPacket> TYPE = new Type<>(Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "packet_aggregation_packet"));
 
