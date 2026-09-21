@@ -12,9 +12,7 @@
     "NetworkRegistryMixin",
     "PacketDecoderMixin",
     "PacketEncoderMixin",
-    "PlayerListMixin",
-    "Varint21FrameDecoderMixin",
-    "Varint21LengthFieldPrependerMixin"
+    "PlayerListMixin"
   ],
   "client": [
   ],

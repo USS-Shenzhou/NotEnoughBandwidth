@@ -21,7 +21,7 @@ public class ClientNetworkRegistryMixin extends NetworkRegistry {
 
     // client init
     @Inject(method = "setup", at = @At("TAIL"))
-    private static void nebwGetAllPacketIdentifier(CallbackInfo ci) {
+    private static void nebGetAllPacketIdentifier(CallbackInfo ci) {
         NamespaceIndexManager.init(new ArrayList<>(PAYLOAD_REGISTRATIONS.get(ConnectionProtocol.PLAY).keySet()));
         AggregationManager.init();
     }

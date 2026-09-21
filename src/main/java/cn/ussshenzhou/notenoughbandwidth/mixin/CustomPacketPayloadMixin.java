@@ -25,7 +25,7 @@ public class CustomPacketPayloadMixin {
     ConnectionProtocol val$protocol;
 
     @Redirect(method = "writeCap(Lnet/minecraft/network/FriendlyByteBuf;Lnet/minecraft/network/protocol/common/custom/CustomPacketPayload$Type;Lnet/minecraft/network/protocol/common/custom/CustomPacketPayload;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/FriendlyByteBuf;writeIdentifier(Lnet/minecraft/resources/Identifier;)Lnet/minecraft/network/FriendlyByteBuf;"))
-    private FriendlyByteBuf nebwIndexedHeaderEncode(FriendlyByteBuf buf, Identifier identifier) {
+    private FriendlyByteBuf nebIndexedHeaderEncode(FriendlyByteBuf buf, Identifier identifier) {
         if (val$protocol != ConnectionProtocol.PLAY) {
             buf.writeIdentifier(identifier);
             return buf;
@@ -35,7 +35,7 @@ public class CustomPacketPayloadMixin {
     }
 
     @Redirect(method = "decode(Lnet/minecraft/network/FriendlyByteBuf;)Lnet/minecraft/network/protocol/common/custom/CustomPacketPayload;", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/FriendlyByteBuf;readIdentifier()Lnet/minecraft/resources/Identifier;"))
-    private Identifier nebwIndexedHeaderDecode(FriendlyByteBuf buf) {
+    private Identifier nebIndexedHeaderDecode(FriendlyByteBuf buf) {
         if (val$protocol != ConnectionProtocol.PLAY) {
             return buf.readIdentifier();
         }

@@ -27,7 +27,7 @@ public class NetworkRegistryMixin {
 
     // server init
     @Inject(method = "initializeNeoForgeConnection(Lnet/minecraft/network/protocol/configuration/ServerConfigurationPacketListener;Ljava/util/Map;)V", at = @At("TAIL"))
-    private static void nebwGetAllPacketIdentifier(ServerConfigurationPacketListener listener, Map<ConnectionProtocol, Set<ModdedNetworkQueryComponent>> clientChannels, CallbackInfo ci, @Local(name = "setup") NetworkPayloadSetup setup) {
+    private static void nebGetAllPacketIdentifier(ServerConfigurationPacketListener listener, Map<ConnectionProtocol, Set<ModdedNetworkQueryComponent>> clientChannels, CallbackInfo ci, @Local(name = "setup") NetworkPayloadSetup setup) {
         NamespaceIndexManager.init(new ArrayList<>(setup.channels().get(ConnectionProtocol.PLAY).keySet()));
         AggregationManager.init();
     }
